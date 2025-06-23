@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
+using OIDC_ExternalID_API.Models;
 
 namespace OIDC_ExternalID_API.Controllers
 {
@@ -113,6 +114,33 @@ namespace OIDC_ExternalID_API.Controllers
                 // Fetch the updated user object
                 //var updatedUser = await _graphServiceClient.Users[idOrEmail].GetAsync();
                 //return Ok(updatedUser);
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+
+
+
+        [HttpPatch("UpdateUserLimitedAttributes")]
+        public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
+        {
+            try
+            {
+                var user = new User();
+                if (updates.DisplayName != null)
+                    user.DisplayName = updates.DisplayName;
+                if (updates.JobTitle != null)
+                    user.JobTitle = updates.JobTitle;
+                if (updates.Department != null)
+                    user.Department = updates.Department;
+                // Add other fields as needed
+
+                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
+
+                return Ok("User Updated with Limited Attributes");
             }
             catch (ODataError odataError)
             {
