@@ -52,7 +52,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
 
-        [HttpGet("user")]
+        [HttpGet("Get_User-by-userobjID")]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -70,7 +70,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
 
-        [HttpGet("user/by-email")]
+        [HttpGet("Get_User/by-email")]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             try
@@ -96,7 +96,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
 
-        [HttpPatch("user")]
+        [HttpPatch("Update_User-by-userobjID")]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
         {
             try
@@ -125,7 +125,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
 
-        [HttpPatch("UpdateUserLimitedAttributes")]
+        [HttpPatch("UpdateUserLimitedAttributes-userobjID")]
         public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
         {
             try
