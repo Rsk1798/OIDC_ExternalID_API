@@ -52,4 +52,4 @@ jobs:
           app-name: 'ExternalID-RestAPI'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_EDC2337B49CD4F90B3C7D62D14D886E3 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2753A721B270438FB6724AE97F22F362 }}
