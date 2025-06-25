@@ -24,6 +24,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
         [HttpPost("invite")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> InviteUser(string email)
         {
             var invitation = new Invitation
