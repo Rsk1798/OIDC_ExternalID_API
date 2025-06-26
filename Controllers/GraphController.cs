@@ -153,7 +153,150 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
+        // [HttpDelete("Delete_User-by-userobjID")]
+        [HttpDelete("deleteUserById")]
+        public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
+        {
+            try
+            {
+                // This line calls the Graph API to delete a user
+                await _graphServiceClient.Users[idOrEmail].DeleteAsync();
+                return Ok("User deleted successfully.");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
 
+        // [HttpDelete("Delete_User-by-email")]
+        [HttpDelete("deleteUserByEmail")]
+        public async Task<IActionResult> DeleteUserByEmail([FromQuery] string email)
+        {
+            try
+            {
+                // First, find the user by email
+                var users = await _graphServiceClient.Users
+                    .GetAsync(requestConfig =>
+                    {
+                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+                    });
+
+                var user = users?.Value?.FirstOrDefault();
+                if (user == null)
+                    return NotFound("User not found.");
+
+                // Delete the user using their ID
+                await _graphServiceClient.Users[user.Id].DeleteAsync();
+                return Ok($"User with email '{email}' deleted successfully.");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+        // [HttpPatch("Change_Password-by-userobjID")]
+        [HttpPatch("changePasswordById")]
+        public async Task<IActionResult> ChangePassword([FromQuery] string idOrEmail, [FromBody] PasswordChangeRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.NewPassword))
+                {
+                    return BadRequest("New password is required.");
+                }
+
+                var passwordProfile = new PasswordProfile
+                {
+                    Password = request.NewPassword,
+                    ForceChangePasswordNextSignIn = request.ForceChangePasswordNextSignIn ?? false,
+                    ForceChangePasswordNextSignInWithMfa = request.ForceChangePasswordNextSignInWithMfa ?? false
+                };
+
+                var user = new User
+                {
+                    PasswordProfile = passwordProfile
+                };
+
+                // This line calls the Graph API to change the user's password
+                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
+                return Ok("Password changed successfully.");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+        // [HttpPatch("Change_Password-by-email")]
+        [HttpPatch("changePasswordByEmail")]
+        public async Task<IActionResult> ChangePasswordByEmail([FromQuery] string email, [FromBody] PasswordChangeRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.NewPassword))
+                {
+                    return BadRequest("New password is required.");
+                }
+
+                // First, find the user by email
+                var users = await _graphServiceClient.Users
+                    .GetAsync(requestConfig =>
+                    {
+                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+                    });
+
+                var user = users?.Value?.FirstOrDefault();
+                if (user == null)
+                    return NotFound("User not found.");
+
+                var passwordProfile = new PasswordProfile
+                {
+                    Password = request.NewPassword,
+                    ForceChangePasswordNextSignIn = request.ForceChangePasswordNextSignIn ?? false,
+                    ForceChangePasswordNextSignInWithMfa = request.ForceChangePasswordNextSignInWithMfa ?? false
+                };
+
+                var userUpdate = new User
+                {
+                    PasswordProfile = passwordProfile
+                };
+
+                // Change the password using the user's ID
+                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+                return Ok($"Password changed successfully for user with email '{email}'.");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+        [HttpPost("changeOwnPassword")]
+        public async Task<IActionResult> ChangeOwnPassword([FromBody] SelfPasswordChangeRequest request)
+        {
+            if (request.NewPassword != request.ConfirmNewPassword)
+                return BadRequest("New password and confirmation do not match.");
+
+            if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
+                return BadRequest("Current and new password are required.");
+
+            try
+            {
+                // This requires delegated permissions and a user token
+                await _graphServiceClient.Me.ChangePassword.PostAsync(new Microsoft.Graph.Me.ChangePassword.ChangePasswordPostRequestBody
+                {
+                    CurrentPassword = request.CurrentPassword,
+                    NewPassword = request.NewPassword
+                });
+                return Ok("Password changed successfully.");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
 
     }
 } 
