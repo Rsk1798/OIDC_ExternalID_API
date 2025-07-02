@@ -3,6 +3,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using OIDC_ExternalID_API.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OIDC_ExternalID_API.Controllers
 {
@@ -274,6 +275,7 @@ namespace OIDC_ExternalID_API.Controllers
         }
 
         [HttpPost("changeOwnPassword")]
+        [Authorize]
         public async Task<IActionResult> ChangeOwnPassword([FromBody] SelfPasswordChangeRequest request)
         {
             if (request.NewPassword != request.ConfirmNewPassword)
