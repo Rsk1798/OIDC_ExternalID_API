@@ -33,6 +33,34 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 
 ---
 
+## API Endpoint Authorization Overview
+
+This table shows which endpoints require a token (authorization) and which do not, as well as the required token type:
+
+| Endpoint                        | Requires Token? | Token Type         |
+|----------------------------------|----------------|--------------------|
+| `/Token/getTestToken`            | No             | N/A                |
+| `/Token/getAppToken`             | No             | N/A                |
+| `/WeatherForecast`               | No             | N/A                |
+| `/Graph/changeOwnPassword`       | Yes            | User (delegated)   |
+| `/Graph/getUserById`             | Yes            | User or App        |
+| `/Graph/getUserByEmail`          | Yes            | User or App        |
+| `/Graph/updateUserById`          | Yes            | App-only           |
+| `/Graph/updateUserAttributesById`| Yes            | App-only           |
+| `/Graph/deleteUserById`          | Yes            | App-only           |
+| `/Graph/deleteUserByEmail`       | Yes            | App-only           |
+| `/Graph/changePasswordById`      | Yes            | App-only           |
+| `/Graph/changePasswordByEmail`   | Yes            | App-only           |
+| `/Graph/invite`                  | Yes            | App-only           |
+
+**Summary:**
+- All `/Graph/*` endpoints require a token except `/WeatherForecast`.
+- `/Token/getTestToken` and `/Token/getAppToken` are used to obtain tokens and do not require authorization themselves.
+- Use a **user token** (from `/Token/getTestToken`) for `/Graph/changeOwnPassword`.
+- Use an **app token** (from `/Token/getAppToken`) for all other `/Graph/*` endpoints unless otherwise noted.
+
+---
+
 ## Important Note on Password Reset Flow
 
 **If a user's password is reset by an admin in the Azure Portal, the new (temporary) password CANNOT be used directly with the API.**
