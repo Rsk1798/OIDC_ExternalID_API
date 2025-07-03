@@ -33,6 +33,17 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 
 ---
 
+## Important Note on Password Reset Flow
+
+**If a user's password is reset by an admin in the Azure Portal, the new (temporary) password CANNOT be used directly with the API.**
+
+- The user must first log in to a Microsoft web portal (such as [https://myaccount.microsoft.com](https://myaccount.microsoft.com)) with the temporary password.
+- The portal will prompt the user to set a new password.
+- Only after this process is complete can the user use their new password with the API endpoints (such as `/Token/getTestToken` or `/Graph/changeOwnPassword`).
+- This is a security feature enforced by Microsoft and cannot be bypassed by any API.
+
+---
+
 ## API Usage Guide
 
 ### Authentication & Token Endpoints
@@ -53,7 +64,9 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
   "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
 }
 ```
-**Use:** Use this token as a Bearer token in the `Authorization` header for endpoints that require user authentication (e.g., `/Graph/changeOwnPassword`).
+**Use:** Use this token as a Bearer token in the `Authorization` header for endpoints that require user authentication.
+
+**Note:** If the user's password was recently reset by an admin, they must first log in to a Microsoft portal and change their password before using this endpoint.
 
 ---
 
@@ -74,7 +87,7 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 
 ### User & Graph Endpoints
 
-> All `/Graph` endpoints require a valid Bearer token in the `Authorization` header. Use a user token for delegated/user actions, or an app token for app-only actions (where supported).
+> Most `/Graph` endpoints require a valid Bearer token in the `Authorization` header. Use a user token for delegated/user actions, or an app token for app-only actions (where supported).
 
 ---
 
@@ -230,7 +243,7 @@ PATCH /Graph/changePasswordByEmail?email=user@yourtenant.onmicrosoft.com
 ---
 
 #### 12. POST `/Graph/changeOwnPassword`
-**Purpose:** User changes their own password (self-service).
+**Purpose:** User changes their own password (self-service, delegated flow).
 
 **Authorization:** Requires a valid user JWT token (from `/Token/getTestToken`).
 
@@ -247,6 +260,13 @@ PATCH /Graph/changePasswordByEmail?email=user@yourtenant.onmicrosoft.com
 POST /Graph/changeOwnPassword
 ```
 **Response:** Success message or error.
+
+**Notes:**
+- Requires a valid user token (delegated permissions)
+- User must provide their current password
+- No admin role or app-only permissions required
+- Uses Microsoft Graph `/me/changePassword` endpoint
+- **If the user's password was recently reset by an admin, they must first log in to a Microsoft portal and change their password before using this endpoint.**
 
 ---
 
@@ -265,7 +285,43 @@ GET /WeatherForecast
 
 ## General Notes
 
-- All `/Graph` endpoints require a valid Bearer token in the `Authorization` header.
+- Most `/Graph` endpoints require a valid Bearer token in the `Authorization` header.
 - Use `/Token/getTestToken` for user tokens (delegated/user actions).
 - Use `/Token/getAppToken` for app tokens (app-only actions).
+- The `/Graph/changeOwnPassword` endpoint is designed for secure self-service password changes using delegated permissions.
 - For password reset scenarios, users must change their password via the Microsoft portal before using it for API authentication.
+
+---
+
+## Azure AD Setup Instructions
+
+### Required Application Permissions
+To use this API, your Azure AD app registration needs these **Application permissions**:
+
+1. **User.Read.All** - To read user data
+2. **User.ReadWrite.All** - To update user passwords and attributes
+3. **User.Invite.All** - To invite guest users
+
+### How to Configure Permissions
+1. Go to [Azure Portal](https://portal.azure.com) → **Azure Active Directory** → **App registrations**
+2. Find your app registration
+3. Go to **API permissions**
+4. Click **Add a permission** → **Microsoft Graph** → **Application permissions**
+5. Add the required permissions listed above
+6. Click **Grant admin consent for [Your Tenant]**
+
+### Testing the API
+After configuring permissions, test with:
+
+```bash
+# Get app token
+curl -X POST "https://localhost:7110/Token/getAppToken"
+
+# Change password (no auth required)
+curl -X POST "https://localhost:7110/Graph/changeOwnPassword" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@yourtenant.onmicrosoft.com",
+    "newPassword": "NewPassword123!"
+  }'
+```
