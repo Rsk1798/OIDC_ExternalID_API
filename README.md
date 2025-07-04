@@ -28,8 +28,25 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 - **Delegated**: The endpoint requires a user token (the user must be signed in and consent to the permissions).
 - **Application**: The endpoint requires an app-only token (client credentials flow, no user context).
 - Some endpoints (like getUserById/getUserByEmail) can work with either permission type, but most write/delete operations require application permissions for security.
-- For `/Graph/changeOwnPassword`, the user must be authenticated as themselves (delegated token).
+- For `/Graph/changeOwnPassword`, the user must be authenticated as themselves (delegated token). **Password change is only supported for Azure AD native users. Guest, social, or external users (e.g., Google, Facebook, B2C) will receive a structured error message and must change their password with their original provider or via the B2C/external identities password reset flow.**
 - For `/Token/getAppToken`, the app must be granted the required application permissions in Azure AD.
+
+---
+
+## Password Reset Flow for Guest, Social, or External Users
+
+If a guest, social, or external user (e.g., Gmail, Facebook, B2C) attempts to use the `/Graph/changeOwnPassword` endpoint, the API will return a structured error response:
+
+**Example error response:**
+```json
+{
+  "code": "PasswordChangeNotSupported",
+  "message": "Password change is not supported for guest, social, or external users. Please change your password with your original provider (e.g., Google, Facebook) or use the external identities password reset flow if applicable.",
+  "resetUrl": "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login"
+}
+```
+- For social/guest users: They should use their provider's password reset (e.g., Google's "Forgot password?").
+- For B2C local users: They should use the B2C password reset flow (the `resetUrl` above).
 
 ---
 
@@ -294,7 +311,16 @@ POST /Graph/changeOwnPassword
 - User must provide their current password
 - No admin role or app-only permissions required
 - Uses Microsoft Graph `/me/changePassword` endpoint
+- **Password change is only supported for Azure AD native users. Guest, social, or external users (e.g., Google, Facebook, B2C) will receive a structured error message and must change their password with their original provider or via the B2C/external identities password reset flow.**
 - **If the user's password was recently reset by an admin, they must first log in to a Microsoft portal and change their password before using this endpoint.**
+- **Example error response for guest/social/external users:**
+  ```json
+  {
+    "code": "PasswordChangeNotSupported",
+    "message": "Password change is not supported for guest, social, or external users. Please change your password with your original provider (e.g., Google, Facebook) or use the external identities password reset flow if applicable.",
+    "resetUrl": "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login"
+  }
+  ```
 
 ---
 
@@ -316,7 +342,7 @@ GET /WeatherForecast
 - Most `/Graph` endpoints require a valid Bearer token in the `Authorization` header.
 - Use `/Token/getTestToken` for user tokens (delegated/user actions).
 - Use `/Token/getAppToken` for app tokens (app-only actions).
-- The `/Graph/changeOwnPassword` endpoint is designed for secure self-service password changes using delegated permissions.
+- The `/Graph/changeOwnPassword` endpoint is designed for secure self-service password changes using delegated permissions. **Password change is only supported for Azure AD native users. Guest, social, or external users (e.g., Google, Facebook, B2C) will receive a structured error message and must change their password with their original provider or via the B2C/external identities password reset flow.**
 - For password reset scenarios, users must change their password via the Microsoft portal before using it for API authentication.
 
 ---

@@ -9,6 +9,7 @@ namespace OIDC_ExternalID_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class GraphController : ControllerBase
     {
 
@@ -55,6 +56,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpGet("Get_User-by-userobjID")]
         [HttpGet("getUserById")]
+        [Authorize]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -74,6 +76,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpGet("Get_User/by-email")]
         [HttpGet("getUserByEmail")]
+        [Authorize]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             try
@@ -101,6 +104,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Update_User-by-userobjID")]
         [HttpPatch("updateUserById")]
+        [Authorize]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
         {
             try
@@ -131,6 +135,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("UpdateUserLimitedAttributes-userobjID")]
         [HttpPatch("updateUserAttributesById")]
+        [Authorize]
         public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
         {
             try
@@ -156,6 +161,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpDelete("Delete_User-by-userobjID")]
         [HttpDelete("deleteUserById")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
         {
             try
@@ -172,6 +178,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpDelete("Delete_User-by-email")]
         [HttpDelete("deleteUserByEmail")]
+        [Authorize]
         public async Task<IActionResult> DeleteUserByEmail([FromQuery] string email)
         {
             try
@@ -199,6 +206,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Change_Password-by-userobjID")]
         [HttpPatch("changePasswordById")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromQuery] string idOrEmail, [FromBody] PasswordChangeRequest request)
         {
             try
@@ -232,6 +240,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Change_Password-by-email")]
         [HttpPatch("changePasswordByEmail")]
+        [Authorize]
         public async Task<IActionResult> ChangePasswordByEmail([FromQuery] string email, [FromBody] PasswordChangeRequest request)
         {
             try
@@ -286,6 +295,32 @@ namespace OIDC_ExternalID_API.Controllers
 
             try
             {
+                // Get the current user object
+                var me = await _graphServiceClient.Me.GetAsync(requestConfig =>
+                {
+                    requestConfig.QueryParameters.Select = new[] { "userType", "identities" };
+                });
+
+                // Check user type and identities
+                var isNative = false;
+                if (me != null && me.UserType == "Member" && me.Identities != null)
+                {
+                    // Native users have a UPN identity
+                    isNative = me.Identities.Any(id => id.SignInType == "userPrincipalName");
+                }
+
+                if (!isNative)
+                {
+                    // Not a native user (guest, social, B2C, etc.)
+                    return BadRequest(new
+                    {
+                        code = "PasswordChangeNotSupported",
+                        message = "Password change is not supported for guest, social, or external users. Please change your password with your original provider (e.g., Google, Facebook) or use the external identities password reset flow if applicable.",
+                        resetUrl = "https://yourtenant.b2clogin.com/yourtenant.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=YOUR_CLIENT_ID&nonce=defaultNonce&redirect_uri=YOUR_REDIRECT_URI&scope=openid&response_type=id_token&prompt=login",
+                        requiredresetUrl = "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login",
+                    });
+                }
+
                 // This requires delegated permissions and a user token
                 await _graphServiceClient.Me.ChangePassword.PostAsync(new Microsoft.Graph.Me.ChangePassword.ChangePasswordPostRequestBody
                 {
@@ -298,6 +333,16 @@ namespace OIDC_ExternalID_API.Controllers
             {
                 return BadRequest(odataError.Error);
             }
+        }
+
+
+
+        [HttpGet("passwordResetUrl")]
+        [Authorize]
+        public IActionResult GetPasswordResetUrl()
+        {
+            var url = "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login";
+            return Ok(new { url });
         }
 
     }
