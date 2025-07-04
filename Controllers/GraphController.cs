@@ -25,6 +25,14 @@ namespace OIDC_ExternalID_API.Controllers
 
 
 
+        [HttpGet("Readme-Instructuons-API-Endpoints")]
+        [AllowAnonymous]
+        public IActionResult GetReadme()
+        {
+            var readme = System.IO.File.ReadAllText("README.md");
+            return Content(readme, "text/markdown");
+        }
+
         [HttpPost("invite")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> InviteUser(string email)
@@ -206,6 +214,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Change_Password-by-userobjID")]
         [HttpPatch("changePasswordById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromQuery] string idOrEmail, [FromBody] PasswordChangeRequest request)
         {
@@ -240,6 +249,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Change_Password-by-email")]
         [HttpPatch("changePasswordByEmail")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Authorize]
         public async Task<IActionResult> ChangePasswordByEmail([FromQuery] string email, [FromBody] PasswordChangeRequest request)
         {
@@ -339,6 +349,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpGet("passwordResetUrl")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult GetPasswordResetUrl()
         {
             var url = "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login";

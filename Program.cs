@@ -46,7 +46,17 @@ builder.Services.AddSwaggerGen(c =>
                },
                new string[] {}
            }
-       });
+    });
+
+
+    // Read the README.md file
+    //var readmeText = File.ReadAllText("README.md");
+    //c.SwaggerDoc("v1", new OpenApiInfo
+    //{
+    //    Title = "External ID Graph Api",
+    //    Version = "v1",
+    //    Description = readmeText // This will show your README in Swagger UI
+    //});
 
 });
 
