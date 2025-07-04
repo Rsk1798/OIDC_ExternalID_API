@@ -8,7 +8,8 @@ This is an API application built using C# and .NET for managing users in Azure A
 
 This API uses Microsoft Graph and requires certain permissions to be granted to your Azure AD app registration. The type of token (delegated/user or application/app-only) and the required permissions depend on the endpoint:
 
-| Endpoint                                 | Permission Type      | Required Microsoft Graph Permissions                |
+|------------------------------------------|---------------------|----------------------------------------------------|
+| Endpoint                                 | Permission Type     | Required Microsoft Graph Permissions               |
 |------------------------------------------|---------------------|----------------------------------------------------|
 | `/Token/getTestToken`                    | Delegated           | User.Read, openid, offline_access                  |
 | `/Token/getAppToken`                     | Application         | (No user context)                                  |
@@ -23,6 +24,7 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 | `/Graph/changePasswordByEmail`           | Application         | User.ReadWrite.All                                 |
 | `/Graph/changeOwnPassword`               | Delegated           | User.ReadWrite, User.ReadWrite.All                 |
 | `/WeatherForecast`                       | None                | (Demo endpoint, no auth required)                  |
+|------------------------------------------|---------------------|----------------------------------------------------|
 
 **Notes:**
 - **Delegated**: The endpoint requires a user token (the user must be signed in and consent to the permissions).
@@ -54,7 +56,8 @@ If a guest, social, or external user (e.g., Gmail, Facebook, B2C) attempts to us
 
 This table shows which endpoints require a token (authorization) and which do not, as well as the required token type:
 
-| Endpoint                        | Requires Token? | Token Type         |
+|----------------------------------|----------------|--------------------|
+| Endpoint                         | Requires Token?| Token Type         |
 |----------------------------------|----------------|--------------------|
 | `/Token/getTestToken`            | No             | N/A                |
 | `/Token/getAppToken`             | No             | N/A                |
@@ -69,6 +72,7 @@ This table shows which endpoints require a token (authorization) and which do no
 | `/Graph/changePasswordById`      | Yes            | App-only           |
 | `/Graph/changePasswordByEmail`   | Yes            | App-only           |
 | `/Graph/invite`                  | Yes            | App-only           |
+|----------------------------------|----------------|--------------------|
 
 **Summary:**
 - All `/Graph/*` endpoints require a token except `/WeatherForecast`.
