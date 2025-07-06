@@ -107,7 +107,7 @@ If a guest, social, or external user (e.g., Gmail, Facebook, B2C) attempts to us
 
 This table shows which endpoints require a token (authorization) and which do not, as well as the required token type:
 
-|-------------------------------------|-----------------|---------------------|
+
 | Endpoint                            | Requires Token? | Token Type          |
 |-------------------------------------|-----------------|---------------------|
 | `/Token/getTestToken`               | No              | N/A                 |
@@ -124,7 +124,7 @@ This table shows which endpoints require a token (authorization) and which do no
 | `/Graph/changePasswordById`         | Yes             | App-only            |
 | `/Graph/changePasswordByEmail`      | Yes             | App-only            |
 | `/Graph/invite`                     | Yes             | App-only            |
-|-------------------------------------|-----------------|---------------------|
+
 
 **Summary:**
 - All `/Graph/*` endpoints require a token except `/WeatherForecast`.
