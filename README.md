@@ -8,7 +8,7 @@ This is an API application built using C# and .NET for managing users in Azure A
 
 This API uses Microsoft Graph and requires certain permissions to be granted to your Azure AD app registration. The type of token (delegated/user or application/app-only) and the required permissions depend on the endpoint:
 
-|------------------------------------------|---------------------|----------------------------------------------------|
+
 | Endpoint                                 | Permission Type     | Required Microsoft Graph Permissions               |
 |------------------------------------------|---------------------|----------------------------------------------------|
 | `/Token/getTestToken`                    | Delegated           | User.Read, openid, offline_access                  |
@@ -25,7 +25,7 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 | `/Graph/changeOwnPassword`               | Delegated           | Directory.AccessAsUser.All                         |
 | `/Graph/changeOwnPasswordDelegated`      | Delegated           | Directory.AccessAsUser.All                         |
 | `/WeatherForecast`                       | None                | (Demo endpoint, no auth required)                  |
-|------------------------------------------|---------------------|----------------------------------------------------|
+
 
 **Notes:**
 - **Delegated**: The endpoint requires a user token (the user must be signed in and consent to the permissions).
@@ -42,14 +42,14 @@ This API uses Microsoft Graph and requires certain permissions to be granted to 
 > According to [Microsoft documentation](https://learn.microsoft.com/en-us/graph/api/user-changepassword?view=graph-rest-1.0&tabs=http), the `/me/changePassword` endpoint requires a signed-in user and only supports delegated permissions with the `Directory.AccessAsUser.All` permission. Application permissions are not supported. This applies to both `/Graph/changeOwnPassword` and `/Graph/changeOwnPasswordDelegated` endpoints in this API.
 
 This API provides multiple password change endpoints with different capabilities:
-|-------------------------------------|--------------------|------------------------------|-----------------------------------------------|
+
 | Endpoint                            | Token Type         | Works for All Account Types? | Use Case                                      |
 |-------------------------------------|--------------------|------------------------------|-----------------------------------------------|
 | `/Graph/changePasswordById`         | App-only           | No (Native Azure AD only)    | Admin changing user passwords                 |
 | `/Graph/changePasswordByEmail`      | App-only           | No (Native Azure AD only)    | Admin changing user passwords                 |
 | `/Graph/changeOwnPassword`          | Delegated (user)   | Yes (if user supports it)    | User changing their own password (Graph SDK)  |
 | `/Graph/changeOwnPasswordDelegated` | Delegated (user)   | Yes (if user supports it)    | User changing their own password (Direct HTTP)|
-|-------------------------------------|--------------------|------------------------------|-----------------------------------------------|
+
 
 **Key Differences:**
 - **App-only endpoints** (`changePasswordById`, `changePasswordByEmail`): Only work for native Azure AD users. Cannot change passwords for federated, social, or external accounts.
