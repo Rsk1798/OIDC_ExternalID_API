@@ -4,6 +4,7 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using OIDC_ExternalID_API.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http.Json;
 
 namespace OIDC_ExternalID_API.Controllers
 {
@@ -345,7 +346,67 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
+        [HttpPost("changeOwnPasswordDelegated")]
+        [Authorize]
+        public async Task<IActionResult> ChangeOwnPasswordDelegated([FromBody] SelfPasswordChangeRequest request)
+        {
+            if (request.NewPassword != request.ConfirmNewPassword)
+                return BadRequest("New password and confirmation do not match.");
 
+            if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
+                return BadRequest("Current and new password are required.");
+
+            try
+            {
+                // Get the current user's ID from the JWT token
+                var userId = User.FindFirst("oid")?.Value ?? User.FindFirst("sub")?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Unable to identify the current user.");
+                }
+
+                // Create password change request like your MVC code
+                var passwordChangeRequest = new
+                {
+                    currentPassword = request.CurrentPassword,
+                    newPassword = request.NewPassword
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(passwordChangeRequest);
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                // Create HTTP client for direct Graph API call
+                using var httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
+                
+                // Get the current user's token from the Authorization header
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return BadRequest("Valid Bearer token is required.");
+                }
+                
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authHeader.Substring(7));
+                httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Make the password change request to the users endpoint (like your MVC code)
+                var response = await httpClient.PostAsync($"users/{userId}/changePassword", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Ok("Password changed successfully.");
+                }
+                else
+                {
+                    return BadRequest($"Password change failed: {responseContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error changing password: {ex.Message}");
+            }
+        }
 
         [HttpGet("passwordResetUrl")]
         [Authorize]
