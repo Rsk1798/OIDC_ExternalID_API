@@ -8,6 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Add session support for OAuth 2.0 authorization code flow
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Add the Graph API client
 var scopes = new[] { "https://graph.microsoft.com/.default" };
 var tenantId = builder.Configuration["AzureAd:TenantId"];
@@ -70,6 +79,9 @@ var app = builder.Build();
 // }
 
 app.UseHttpsRedirection();
+
+// Add session middleware
+app.UseSession();
 
 app.UseAuthorization();
 
