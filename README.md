@@ -41,6 +41,19 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 ---
 
+## Required Microsoft Graph API Permissions
+
+Depending on which endpoints you use, your Azure AD app registration should be granted the following Microsoft Graph permissions:
+
+- **Directory.AccessAsUser.All** (Delegated): Required for `/graph/changePassword` (user password change)
+- **User.Read** (Delegated): Required for reading user profile info (if you use endpoints that read user info)
+- **User.ReadWrite.All** (Delegated or Application): Required for updating or deleting users (if you use those endpoints)
+- **User.Invite.All** (Delegated or Application): Required for inviting users (if you use `/graph/invite`)
+
+> For most basic scenarios, only `Directory.AccessAsUser.All` is required for password change. Add others only if you use those features.
+
+---
+
 ## Azure AD App Registration Checklist
 
 - Register your API in Azure AD.
@@ -48,6 +61,12 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 - Add the redirect URI: `https://localhost:7110/swagger/oauth2-redirect.html` (type: Web).
 - Assign required Microsoft Graph API permissions (e.g., `Directory.AccessAsUser.All`).
 - Grant admin consent for application permissions if needed.
+
+- Assign the required Microsoft Graph API permissions:
+  - `Directory.AccessAsUser.All` (delegated)
+  - `User.Read` (delegated, if reading user info)
+  - `User.ReadWrite.All` (delegated or application, if updating/deleting users)
+  - `User.Invite.All` (delegated or application, if inviting users)
 
 ---
 
