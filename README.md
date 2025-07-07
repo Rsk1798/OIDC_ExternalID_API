@@ -1,6 +1,87 @@
 # OIDC_ExternalID_API
 
-This is an API application built using C# and .NET for managing users in Azure AD via Microsoft Graph.
+This API enables secure user management in Azure AD via Microsoft Graph, using modern OAuth2 authentication flows. It is built with C# and .NET.
+
+---
+
+## Authentication & Authorization (Azure AD)
+
+### Supported Flow: OAuth2 Authorization Code with PKCE (Recommended)
+
+- **Swagger UI** is configured for the Authorization Code flow with PKCE, supporting secure, interactive login for work/school (Azure AD) accounts from any tenant (multitenant).
+- **Redirect URI:**
+  - `https://localhost:7110/swagger/oauth2-redirect.html` (must be registered in Azure AD)
+- **Supported account types:**
+  - "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant)"
+- **Scopes:**
+  - Example: `api.read` (replace with your actual API permissions)
+
+#### How to Use in Swagger UI
+1. Click **Authorize** in Swagger UI.
+2. Log in with a work/school (Azure AD) account.
+3. Consent to the requested permissions.
+4. The access token will be used for authorized API calls (e.g., password change endpoints).
+
+> **Note:**
+> - Personal Microsoft accounts (e.g., @outlook.com, @hotmail.com) are not supported unless your Azure AD registration allows them (not available in all tenants).
+> - Federated users are supported if their domain is properly federated and allowed in Azure AD.
+
+---
+
+## Key Endpoints
+
+| Endpoint                        | Method | Description                                 | Auth Required |
+|---------------------------------|--------|---------------------------------------------|--------------|
+| `/Graph/changePasswordById`     | POST   | Admin changes user password by ID           | Yes          |
+| `/Graph/changePasswordByEmail`  | POST   | Admin changes user password by email        | Yes          |
+| `/Graph/changeOwnPassword`      | POST   | User changes their own password (delegated) | Yes          |
+| `/WeatherForecast`              | GET    | Demo endpoint, no auth required             | No           |
+
+- All password change endpoints require a valid Azure AD access token with appropriate permissions.
+- Use the **Authorize** button in Swagger UI to obtain a token.
+
+---
+
+## Azure AD App Registration Checklist
+
+- Register your API in Azure AD.
+- Set **Supported account types** to: Any Microsoft Entra ID tenant (multitenant).
+- Add the redirect URI: `https://localhost:7110/swagger/oauth2-redirect.html` (type: Web).
+- Assign required Microsoft Graph API permissions (e.g., `User.ReadWrite.All`, `Directory.AccessAsUser.All`).
+- Grant admin consent for application permissions if needed.
+
+---
+
+## Troubleshooting
+
+- **AADSTS500208:** The domain is not a valid login domain for the account type.
+  - Ensure you are using a work/school (Azure AD) account.
+  - Make sure your app registration is set to multitenant.
+  - Confirm the redirect URI is registered in Azure AD.
+  - Federated users must be allowed by your Azure AD configuration.
+- **CORS/PKCE Issues:**
+  - Always use the Authorization Code flow with PKCE in Swagger UI for browser-based authentication.
+  - Client credentials flow is not supported directly in Swagger UI with Azure AD due to CORS restrictions.
+
+---
+
+## Removed/Legacy Items
+
+- Legacy endpoints and flows (e.g., ROPC, direct client credentials in Swagger UI) have been removed for security and compatibility reasons.
+- Only the Authorization Code flow with PKCE is supported for interactive login in Swagger UI.
+
+---
+
+## Quick Start
+
+1. Clone the repo and configure your Azure AD app registration as described above.
+2. Run the API locally.
+3. Open Swagger UI at `https://localhost:7110/swagger`.
+4. Click **Authorize**, log in, and test the endpoints.
+
+---
+
+For further details or advanced scenarios, refer to Microsoft documentation on [OAuth2 flows in Azure AD](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) and [Microsoft Graph permissions](https://learn.microsoft.com/en-us/graph/permissions-reference).
 
 ---
 
@@ -404,162 +485,6 @@ GET /Token/adminconsent-callback?admin_consent=True&tenant=38d49456-54d4-455d-a8
 
 **Example:**
 ```
-
-#### 9. POST `/Token/oauth2/client-credentials`
-**Purpose:** OAuth 2.0 client credentials flow (similar to Postman implementation).
-
-**Request Body (Minimal):**
-```json
-{
-  "tokenName": "GraphToken"
-}
-```
-
-**Request Body (Full):**
-```json
-{
-  "clientId": "your-client-id",
-  "clientSecret": "your-client-secret",
-  "tenantId": "your-tenant-id",
-  "scope": "https://graph.microsoft.com/.default",
-  "clientAuthentication": "basic_auth",
-  "tokenName": "GraphToken"
-}
-```
-
-**Parameters:**
-- `clientId` (string, optional): Client ID (uses appsettings.json if not provided)
-- `clientSecret` (string, optional): Client secret (uses appsettings.json if not provided)
-- `tenantId` (string, optional): Tenant ID (uses appsettings.json if not provided)
-- `scope` (string, optional): Scope for the token (defaults to `https://graph.microsoft.com/.default`)
-- `clientAuthentication` (string, optional): "basic_auth" or "body" (defaults to "basic_auth")
-- `tokenName` (string, optional): Name for the token (defaults to "GraphToken")
-
-**Response:**
-```json
-{
-  "token_name": "GraphToken",
-  "grant_type": "client_credentials",
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
-  "expires_in": 3600,
-  "ext_expires_in": 3600,
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "tenant_id": "your-tenant-id",
-  "client_id": "your-client-id",
-  "client_authentication": "basic_auth"
-}
-```
-
-**Use:** This endpoint mimics Postman's OAuth 2.0 client credentials flow, allowing you to get app-only tokens directly without external tools.
-
----
-
-#### 10. POST `/Token/oauth2/authorization-url`
-**Purpose:** Generate authorization URL for OAuth 2.0 authorization code flow.
-
-**Request Body (Minimal):**
-```json
-{
-  "state": "optional-state"
-}
-```
-
-**Request Body (Full):**
-```json
-{
-  "clientId": "your-client-id",
-  "tenantId": "your-tenant-id",
-  "redirectUri": "https://oauth.pstmn.io/v1/callback",
-  "scope": "https://graph.microsoft.com/.default",
-  "state": "optional-state"
-}
-```
-
-**Parameters:**
-- `clientId` (string, optional): Client ID (uses appsettings.json if not provided)
-- `tenantId` (string, optional): Tenant ID (uses appsettings.json if not provided)
-- `redirectUri` (string, optional): Redirect URI (defaults to `https://oauth.pstmn.io/v1/callback`)
-- `scope` (string, optional): Scope for the token (defaults to `https://graph.microsoft.com/.default`)
-- `state` (string, optional): State parameter for security (auto-generated if not provided)
-
-**Response:**
-```json
-{
-  "auth_url": "https://login.microsoftonline.com/your-tenant-id/oauth2/v2.0/authorize?...",
-  "tenant_id": "your-tenant-id",
-  "client_id": "your-client-id",
-  "redirect_uri": "https://oauth.pstmn.io/v1/callback",
-  "scope": "https://graph.microsoft.com/.default",
-  "state": "generated-state",
-  "instructions": {
-    "step1": "Open the auth_url in your browser",
-    "step2": "Sign in with your Microsoft account",
-    "step3": "Grant consent to the requested permissions",
-    "step4": "Copy the authorization code from the redirect URL",
-    "step5": "Use the authorization code with /Token/oauth2/authorization-code endpoint"
-  }
-}
-```
-
-**Use:** Generate authorization URLs for OAuth 2.0 authorization code flow, similar to Postman's implementation.
-
----
-
-#### 11. POST `/Token/oauth2/authorization-code`
-**Purpose:** Exchange authorization code for access token (OAuth 2.0 authorization code flow).
-
-**Request Body (Minimal):**
-```json
-{
-  "authorizationCode": "M.R3_BAY.c0..."
-}
-```
-
-**Request Body (Full):**
-```json
-{
-  "clientId": "your-client-id",
-  "clientSecret": "your-client-secret",
-  "tenantId": "your-tenant-id",
-  "authorizationCode": "M.R3_BAY.c0...",
-  "redirectUri": "https://oauth.pstmn.io/v1/callback",
-  "scope": "https://graph.microsoft.com/.default",
-  "tokenName": "GraphToken",
-  "clientAuthentication": "basic_auth"
-}
-```
-
-**Parameters:**
-- `clientId` (string, optional): Client ID (uses appsettings.json if not provided)
-- `clientSecret` (string, optional): Client secret (uses appsettings.json if not provided)
-- `tenantId` (string, optional): Tenant ID (uses appsettings.json if not provided)
-- `authorizationCode` (string, required): Authorization code from the authorization URL
-- `redirectUri` (string, optional): Redirect URI (must match the one used in authorization URL, defaults to `https://oauth.pstmn.io/v1/callback`)
-- `scope` (string, optional): Scope for the token (defaults to `https://graph.microsoft.com/.default`)
-- `tokenName` (string, optional): Name for the token (defaults to "GraphToken")
-- `clientAuthentication` (string, optional): "basic_auth" or "body" (defaults to "basic_auth")
-
-**Response:**
-```json
-{
-  "token_name": "GraphToken",
-  "grant_type": "authorization_code",
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
-  "refresh_token": "M.R3_BAY.c0...",
-  "expires_in": 3600,
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "tenant_id": "your-tenant-id",
-  "client_id": "your-client-id",
-  "redirect_uri": "https://oauth.pstmn.io/v1/callback",
-  "client_authentication": "basic_auth"
-}
-```
-
-**Use:** Exchange authorization codes for access tokens, completing the OAuth 2.0 authorization code flow.
-
----
 POST /Token/getAppOnlyToken?scope=https://graph.microsoft.com/.default
 ```
 **Response:**

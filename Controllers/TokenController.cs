@@ -709,6 +709,7 @@ namespace OIDC_ExternalID_API.Controllers
         // OAuth 2.0 Authorization Code Flow - Similar to Postman Implementation
         [HttpPost("oauth2/authorization-code")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> OAuth2AuthorizationCode([FromBody] OAuth2AuthorizationCodeRequest request)
         {
             if (request == null)
@@ -813,6 +814,7 @@ namespace OIDC_ExternalID_API.Controllers
         // Generate Authorization URL for OAuth 2.0 Authorization Code Flow
         [HttpPost("oauth2/authorization-url")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult GenerateAuthorizationUrl([FromBody] AuthorizationUrlRequest request)
         {
             if (request == null)
