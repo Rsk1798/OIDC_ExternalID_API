@@ -116,7 +116,7 @@ sequenceDiagram
 
 1. Register your API in Azure AD and set up permissions as above.
 2. Run the API locally.
-3. Open Swagger UI at `https://localhost:7110/swagger`.
+3. Open Swagger UI at `https://localhost:demo/swagger`.
 4. Click **Authorize** and log in with your Azure AD, B2B, or federated social account.
 5. Use the `/graph/changePassword` endpoint to change your password.
 
@@ -137,7 +137,7 @@ sequenceDiagram
 
 - **Swagger UI** is configured for the Authorization Code flow with PKCE, supporting secure, interactive login for any Microsoft account (work, school, or personal).
 - **Redirect URI:**
-  - `https://localhost:7110/swagger/oauth2-redirect.html` (must be registered in Azure AD)
+  - `https://localhost:demo/swagger/oauth2-redirect.html` (must be registered in Azure AD)
 - **Supported account types:**
   - "Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox)"
 - **Scope:**
