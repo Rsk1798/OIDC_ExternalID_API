@@ -4,6 +4,68 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 ---
 
+## Architecture Diagram of API
+
+flowchart TD
+  subgraph "User/Client"
+    A1["User (Browser/App)"]
+  end
+  subgraph "OIDC_ExternalID_API"
+    B1["Swagger UI / API Client"]
+    B2["TokenController"]
+    B3["GraphController"]
+    B4["User Management Logic"]
+  end
+  subgraph "Identity Providers"
+    C1["Azure AD (Workforce)"]
+    C2["Google, Facebook, etc. (CIAM)"]
+    C3["Local Accounts DB"]
+  end
+  subgraph "Microsoft Graph API"
+    D1["Graph API"]
+  end
+
+  A1-->|"Login/Signup"|B1
+  B1-->|"OAuth2/OIDC Auth Request"|C1
+  B1-->|"OAuth2/OIDC Auth Request"|C2
+  B1-->|"Local Auth Request"|C3
+  C1-->|"Token/Claims"|B2
+  C2-->|"Token/Claims"|B2
+  C3-->|"Token/Claims"|B2
+  B2-->|"Issue JWT/Session"|A1
+  A1-->|"API Call (with Token)"|B3
+  B3-->|"User/Password Mgmt"|B4
+  B4-->|"Graph API Call"|D1
+  D1-->|"User/Password Ops"|B4
+  B4-->|"Response"|B3
+  B3-->|"API Response"|A1
+
+---
+
+## Visual Workflow of this API
+
+sequenceDiagram
+  participant User as "User/Client"
+  participant Swagger as "Swagger UI / API Client"
+  participant Token as "TokenController"
+  participant Graph as "GraphController"
+  participant IdP as "Identity Provider (Azure AD/Google/Local)"
+  participant MSGraph as "Microsoft Graph API"
+
+  User->>Swagger: Open Swagger UI / App
+  User->>Swagger: Click Authorize/Login
+  Swagger->>IdP: Redirect to Identity Provider (OIDC/OAuth2)
+  IdP-->>Swagger: Return Token/Claims
+  Swagger->>Token: Send Token for API Auth
+  Token-->>User: Issue JWT/Session
+  User->>Graph: Call API Endpoint (with Token)
+  Graph->>Token: Validate Token
+  Graph->>MSGraph: (If needed) Call Microsoft Graph API
+  MSGraph-->>Graph: Return Data/Result
+  Graph-->>User: API Response
+
+---
+
 ## Authentication & Authorization (Azure AD)
 
 ### Supported Flow: OAuth2 Authorization Code with PKCE
