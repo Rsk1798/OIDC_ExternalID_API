@@ -113,6 +113,41 @@ Depending on which endpoints you use, your Azure AD app registration should be g
 
 ---
 
+## Support for CIAM (External) and Workforce (Internal) Tenants
+
+This API is designed primarily for CIAM (Customer Identity and Access Management) scenarios, supporting both local accounts and external identity providers (such as Google via OpenID Connect). It can also be extended to support workforce (internal/employee) tenants, but some features may require additional configuration.
+
+### Feature Support Summary
+
+| Feature/Scenario         | CIAM (External) | Workforce (Internal) | This API (default) |
+|--------------------------|:---------------:|:--------------------:|:------------------:|
+| Social Login             |       ✔️         |         ❌           |       ✔️           |
+| Self-Service Signup      |       ✔️         |         ❌           |       ✔️           |
+| SSO with Corp Directory  |       ❌        |         ✔️            |       ❓           |
+| Tenant Separation        |       ✔️         |         ✔️            |       ❓           |
+| Password Change          | Local only       | Corp directory only  | Local only        |
+
+**Legend:**  
+✔️ = Supported  
+❌ = Not supported  
+❓ = Possible with customization
+
+### Notes
+
+- **External Users (e.g., Google):**  
+  Users authenticated via external identity providers cannot change their password through this API. They must change their password with their identity provider (e.g., Google).
+
+- **Local Users:**  
+  Users with local accounts managed by this API can change their password using the provided endpoint.
+
+- **Workforce/Enterprise Users:**  
+  To support SSO and password management for internal users (employees), integration with a corporate directory (e.g., Azure AD, Active Directory) is required. This may need additional configuration.
+
+- **Tenant Awareness:**  
+  If you require strict tenant separation or multi-tenant logic, ensure your implementation enforces tenant boundaries and policies.
+
+---
+
 For further details or advanced scenarios, refer to Microsoft documentation on [OAuth2 flows in Azure AD](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) and [Microsoft Graph permissions](https://learn.microsoft.com/en-us/graph/permissions-reference).
 
 ---
@@ -812,218 +847,4 @@ curl -X POST "https://localhost:demo/Token/oauth2/client-credentials" \
 ```
 
 **Expected Response:**
-```json
-{
-  "token_name": "GraphToken",
-  "grant_type": "client_credentials",
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
-  "expires_in": 3600,
-  "ext_expires_in": 3600,
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "tenant_id": "your-tenant-id",
-  "client_id": "your-client-id",
-  "client_authentication": "basic_auth"
-}
-```
-
-### Testing Authorization Code Flow (User Delegated)
-
-**Step 1: Generate Authorization URL (Minimal)**
-```bash
-curl -X POST "https://localhost:demo/Token/oauth2/authorization-url" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "state": "test-state-123"
-  }'
-```
-
-**Step 1: Generate Authorization URL (Full)**
-```bash
-curl -X POST "https://localhost:demo/Token/oauth2/authorization-url" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "clientId": "your-client-id",
-    "tenantId": "your-tenant-id",
-    "redirectUri": "https://oauth.pstmn.io/v1/callback",
-    "scope": "https://graph.microsoft.com/.default",
-    "state": "test-state-123"
-  }'
-```
-
-**Expected Response:**
-```json
-{
-  "auth_url": "https://login.microsoftonline.com/your-tenant-id/oauth2/v2.0/authorize?...",
-  "tenant_id": "your-tenant-id",
-  "client_id": "your-client-id",
-  "redirect_uri": "https://oauth.pstmn.io/v1/callback",
-  "scope": "https://graph.microsoft.com/.default",
-  "state": "test-state-123",
-  "instructions": {
-    "step1": "Open the auth_url in your browser",
-    "step2": "Sign in with your Microsoft account",
-    "step3": "Grant consent to the requested permissions",
-    "step4": "Copy the authorization code from the redirect URL",
-    "step5": "Use the authorization code with /Token/oauth2/authorization-code endpoint"
-  }
-}
-```
-
-**Step 2: Open the authorization URL in your browser**
-- Copy the `auth_url` from the response
-- Open it in your browser
-- Sign in with your Microsoft account
-- Grant consent to the requested permissions
-- You'll be redirected to a URL like: `https://oauth.pstmn.io/v1/callback?code=M.R3_BAY.c0...&state=test-state-123`
-- Copy the `code` parameter value
-
-**Step 3: Exchange Authorization Code for Token (Minimal)**
-```bash
-curl -X POST "https://localhost:demo/Token/oauth2/authorization-code" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "authorizationCode": "M.R3_BAY.c0..."
-  }'
-```
-
-**Step 3: Exchange Authorization Code for Token (Full)**
-```bash
-curl -X POST "https://localhost:demo/Token/oauth2/authorization-code" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "clientId": "your-client-id",
-    "clientSecret": "your-client-secret",
-    "tenantId": "your-tenant-id",
-    "authorizationCode": "M.R3_BAY.c0...",
-    "redirectUri": "https://oauth.pstmn.io/v1/callback",
-    "scope": "https://graph.microsoft.com/.default",
-    "tokenName": "GraphToken",
-    "clientAuthentication": "basic_auth"
-  }'
-```
-
-**Expected Response:**
-```json
-{
-  "token_name": "GraphToken",
-  "grant_type": "authorization_code",
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
-  "refresh_token": "M.R3_BAY.c0...",
-  "expires_in": 3600,
-  "token_type": "Bearer",
-  "scope": "https://graph.microsoft.com/.default",
-  "tenant_id": "your-tenant-id",
-  "client_id": "your-client-id",
-  "redirect_uri": "https://oauth.pstmn.io/v1/callback",
-  "client_authentication": "basic_auth"
-}
-```
-
-### Testing in Swagger UI
-
-1. **Open Swagger UI**: Navigate to `https://localhost:demo/swagger`
-2. **Test Client Credentials Flow**:
-   - Find the `POST /Token/oauth2/client-credentials` endpoint
-   - Click "Try it out"
-   - Enter your request body (you can leave clientId and clientSecret empty to use appsettings values)
-   - Click "Execute"
-3. **Test Authorization URL Generation**:
-   - Find the `POST /Token/oauth2/authorization-url` endpoint
-   - Click "Try it out"
-   - Enter your request body
-   - Click "Execute"
-   - Copy the `auth_url` and open it in your browser
-4. **Test Authorization Code Exchange**:
-   - Find the `POST /Token/oauth2/authorization-code` endpoint
-   - Click "Try it out"
-   - Enter your request body with the authorization code from step 3
-   - Click "Execute"
-
-### Testing with Postman
-
-You can also test these endpoints using Postman:
-
-1. **Client Credentials Flow**:
-   - Method: `POST`
-   - URL: `https://localhost:demo/Token/oauth2/client-credentials`
-   - Headers: `Content-Type: application/json`
-   - Body (raw JSON):
-     ```json
-     {
-       "clientId": "your-client-id",
-       "clientSecret": "your-client-secret",
-       "scope": "https://graph.microsoft.com/.default",
-       "clientAuthentication": "basic_auth",
-       "tokenName": "GraphToken"
-     }
-     ```
-
-2. **Authorization Code Flow**:
-   - Follow the same steps as above, but use the authorization URL and code exchange endpoints
-
-### Simplified Usage with appsettings.json
-
-The OAuth 2.0 endpoints are designed to work seamlessly with your `appsettings.json` configuration. You can use them in two ways:
-
-#### **Minimal Usage (Recommended)**
-Use the default values from your `appsettings.json`:
-
-```json
-{
-  "tokenName": "GraphToken"
-}
-```
-
-This will automatically use:
-- `TenantId` from `AzureAd:TenantId`
-- `ClientId` from `AzureAd:ClientId` 
-- `ClientSecret` from `AzureAd:ClientSecret`
-- `Scope` defaults to `https://graph.microsoft.com/.default`
-- `ClientAuthentication` defaults to `basic_auth`
-- `RedirectUri` defaults to `https://oauth.pstmn.io/v1/callback`
-
-#### **Full Usage (Override Defaults)**
-Provide specific values to override the defaults:
-
-```json
-{
-  "clientId": "your-client-id",
-  "clientSecret": "your-client-secret",
-  "tenantId": "your-tenant-id",
-  "scope": "https://graph.microsoft.com/.default",
-  "clientAuthentication": "basic_auth",
-  "tokenName": "GraphToken"
-}
-```
-
-### Important Notes
-
-- **Configuration Priority**: Request parameters override appsettings.json values
-- **Client Authentication**: You can choose between "basic_auth" (sends credentials in Authorization header) or "body" (sends credentials in request body)
-- **Scope**: The default scope is `https://graph.microsoft.com/.default` for app-only tokens
-- **Redirect URI**: For authorization code flow, you can use any valid redirect URI, but it must match between the authorization URL and token exchange
-- **State Parameter**: Always validate the state parameter in production to prevent CSRF attacks
-- **Error Handling**: All endpoints return structured error responses with detailed messages
-- **Token Security**: Never expose client secrets in client-side code or logs
-- **Production Use**: These endpoints are designed for server-to-server communication and should not be exposed to end users directly
-- **Works for all account types that support password changes, including native Azure AD, federated, and social accounts (Google, Facebook, etc.)**
-- **If the user's password was recently reset by an admin, they must first log in to a Microsoft portal and change their password before using this endpoint.**
-- **Example error response for guest/social/external users:**
-  ```json
-  {
-    "code": "PasswordChangeNotSupported",
-    "message": "Password change is not supported for guest, social, or external users. Please change your password with your original provider (e.g., Google, Facebook) or use the external identities password reset flow if applicable.",
-    "resetUrl": "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login"
-  }
-  ```
-
----
-
-### Weather Endpoint (Demo Only)
-
-#### 21. GET `/WeatherForecast`
-**Purpose:** Returns a sample weather forecast (for demo/testing).
-
-**Example:**
 ```
