@@ -10,7 +10,7 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 - **Swagger UI** is configured for the Authorization Code flow with PKCE, supporting secure, interactive login for work/school (Azure AD) accounts from any tenant (multitenant).
 - **Redirect URI:**
-  - `https://localhost:7110/swagger/oauth2-redirect.html` (must be registered in Azure AD)
+  - `https://localhost:demo/swagger/oauth2-redirect.html` (must be registered in Azure AD)
 - **Supported account types:**
   - "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant)"
 - **Scopes:**
@@ -46,7 +46,7 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 - Register your API in Azure AD.
 - Set **Supported account types** to: Any Microsoft Entra ID tenant (multitenant).
-- Add the redirect URI: `https://localhost:7110/swagger/oauth2-redirect.html` (type: Web).
+- Add the redirect URI: `https://localhost:demo/swagger/oauth2-redirect.html` (type: Web).
 - Assign required Microsoft Graph API permissions (e.g., `User.ReadWrite.All`, `Directory.AccessAsUser.All`).
 - Grant admin consent for application permissions if needed.
 
@@ -76,7 +76,7 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 1. Clone the repo and configure your Azure AD app registration as described above.
 2. Run the API locally.
-3. Open Swagger UI at `https://localhost:7110/swagger`.
+3. Open Swagger UI at `https://localhost:demo/swagger`.
 4. Click **Authorize**, log in, and test the endpoints.
 
 ---
@@ -454,7 +454,7 @@ GET /Token/callback?code={authorization_code}&state={state}
 
 **Example:**
 ```
-GET /Token/adminconsent?redirectUri=https://localhost:7110/Token/adminconsent-callback&state=12345
+GET /Token/adminconsent?redirectUri=https://localhost:demo/Token/adminconsent-callback&state=12345
 ```
 **Response:** Redirects to Microsoft admin consent page.
 
@@ -758,7 +758,7 @@ POST /Graph/changeOwnPasswordDelegated
 
 **Step 1: Test Client Credentials Flow (Minimal)**
 ```bash
-curl -X POST "https://localhost:7110/Token/oauth2/client-credentials" \
+curl -X POST "https://localhost:demo/Token/oauth2/client-credentials" \
   -H "Content-Type: application/json" \
   -d '{
     "tokenName": "GraphToken"
@@ -767,7 +767,7 @@ curl -X POST "https://localhost:7110/Token/oauth2/client-credentials" \
 
 **Step 1: Test Client Credentials Flow (Full)**
 ```bash
-curl -X POST "https://localhost:7110/Token/oauth2/client-credentials" \
+curl -X POST "https://localhost:demo/Token/oauth2/client-credentials" \
   -H "Content-Type: application/json" \
   -d '{
     "clientId": "your-client-id",
@@ -799,7 +799,7 @@ curl -X POST "https://localhost:7110/Token/oauth2/client-credentials" \
 
 **Step 1: Generate Authorization URL (Minimal)**
 ```bash
-curl -X POST "https://localhost:7110/Token/oauth2/authorization-url" \
+curl -X POST "https://localhost:demo/Token/oauth2/authorization-url" \
   -H "Content-Type: application/json" \
   -d '{
     "state": "test-state-123"
@@ -808,7 +808,7 @@ curl -X POST "https://localhost:7110/Token/oauth2/authorization-url" \
 
 **Step 1: Generate Authorization URL (Full)**
 ```bash
-curl -X POST "https://localhost:7110/Token/oauth2/authorization-url" \
+curl -X POST "https://localhost:demo/Token/oauth2/authorization-url" \
   -H "Content-Type: application/json" \
   -d '{
     "clientId": "your-client-id",
@@ -848,7 +848,7 @@ curl -X POST "https://localhost:7110/Token/oauth2/authorization-url" \
 
 **Step 3: Exchange Authorization Code for Token (Minimal)**
 ```bash
-curl -X POST "https://localhost:7110/Token/oauth2/authorization-code" \
+curl -X POST "https://localhost:demo/Token/oauth2/authorization-code" \
   -H "Content-Type: application/json" \
   -d '{
     "authorizationCode": "M.R3_BAY.c0..."
@@ -857,7 +857,7 @@ curl -X POST "https://localhost:7110/Token/oauth2/authorization-code" \
 
 **Step 3: Exchange Authorization Code for Token (Full)**
 ```bash
-curl -X POST "https://localhost:7110/Token/oauth2/authorization-code" \
+curl -X POST "https://localhost:demo/Token/oauth2/authorization-code" \
   -H "Content-Type: application/json" \
   -d '{
     "clientId": "your-client-id",
@@ -890,7 +890,7 @@ curl -X POST "https://localhost:7110/Token/oauth2/authorization-code" \
 
 ### Testing in Swagger UI
 
-1. **Open Swagger UI**: Navigate to `https://localhost:7110/swagger`
+1. **Open Swagger UI**: Navigate to `https://localhost:demo/swagger`
 2. **Test Client Credentials Flow**:
    - Find the `POST /Token/oauth2/client-credentials` endpoint
    - Click "Try it out"
@@ -914,7 +914,7 @@ You can also test these endpoints using Postman:
 
 1. **Client Credentials Flow**:
    - Method: `POST`
-   - URL: `https://localhost:7110/Token/oauth2/client-credentials`
+   - URL: `https://localhost:demo/Token/oauth2/client-credentials`
    - Headers: `Content-Type: application/json`
    - Body (raw JSON):
      ```json
