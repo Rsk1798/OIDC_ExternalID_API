@@ -5,6 +5,13 @@ using Microsoft.Graph.Models.ODataErrors;
 using OIDC_ExternalID_API.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http.Json;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace OIDC_ExternalID_API.Controllers
 {
@@ -16,12 +23,16 @@ namespace OIDC_ExternalID_API.Controllers
 
 
         private readonly GraphServiceClient _graphServiceClient;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         // This injects the GraphServiceClient into your controller
-        public GraphController(GraphServiceClient graphServiceClient)
+        public GraphController(GraphServiceClient graphServiceClient, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
             _graphServiceClient = graphServiceClient;
+            _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
         }
 
 
@@ -213,208 +224,34 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
-        // [HttpPatch("Change_Password-by-userobjID")]
-        [HttpPatch("changePasswordById")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [Authorize]
-        public async Task<IActionResult> ChangePassword([FromQuery] string idOrEmail, [FromBody] PasswordChangeRequest request)
+        [HttpPost("changePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
         {
-            try
+            var accessToken = await GetAccessTokenAsync();
+            if (string.IsNullOrEmpty(accessToken))
+                return Unauthorized();
+
+            var client = _httpClientFactory.CreateClient();
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/v1.0/me/changePassword");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Content = new StringContent(JsonConvert.SerializeObject(new
             {
-                if (string.IsNullOrEmpty(request.NewPassword))
-                {
-                    return BadRequest("New password is required.");
-                }
+                currentPassword = model.CurrentPassword,
+                newPassword = model.NewPassword
+            }), Encoding.UTF8, "application/json");
 
-                var passwordProfile = new PasswordProfile
-                {
-                    Password = request.NewPassword,
-                    ForceChangePasswordNextSignIn = request.ForceChangePasswordNextSignIn ?? false,
-                    ForceChangePasswordNextSignInWithMfa = request.ForceChangePasswordNextSignInWithMfa ?? false
-                };
+            var response = await client.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.NoContent)
+                return NoContent();
 
-                var user = new User
-                {
-                    PasswordProfile = passwordProfile
-                };
-
-                // This line calls the Graph API to change the user's password
-                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
-                return Ok("Password changed successfully.");
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
+            var error = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, error);
         }
 
-        // [HttpPatch("Change_Password-by-email")]
-        [HttpPatch("changePasswordByEmail")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [Authorize]
-        public async Task<IActionResult> ChangePasswordByEmail([FromQuery] string email, [FromBody] PasswordChangeRequest request)
+        private async Task<string> GetAccessTokenAsync()
         {
-            try
-            {
-                if (string.IsNullOrEmpty(request.NewPassword))
-                {
-                    return BadRequest("New password is required.");
-                }
-
-                // First, find the user by email
-                var users = await _graphServiceClient.Users
-                    .GetAsync(requestConfig =>
-                    {
-                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
-                    });
-
-                var user = users?.Value?.FirstOrDefault();
-                if (user == null)
-                    return NotFound("User not found.");
-
-                var passwordProfile = new PasswordProfile
-                {
-                    Password = request.NewPassword,
-                    ForceChangePasswordNextSignIn = request.ForceChangePasswordNextSignIn ?? false,
-                    ForceChangePasswordNextSignInWithMfa = request.ForceChangePasswordNextSignInWithMfa ?? false
-                };
-
-                var userUpdate = new User
-                {
-                    PasswordProfile = passwordProfile
-                };
-
-                // Change the password using the user's ID
-                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
-                return Ok($"Password changed successfully for user with email '{email}'.");
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
-
-        [HttpPost("changeOwnPassword")]
-        [Authorize]
-        public async Task<IActionResult> ChangeOwnPassword([FromBody] SelfPasswordChangeRequest request)
-        {
-            if (request.NewPassword != request.ConfirmNewPassword)
-                return BadRequest("New password and confirmation do not match.");
-
-            if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
-                return BadRequest("Current and new password are required.");
-
-            try
-            {
-                // Get the current user object
-                var me = await _graphServiceClient.Me.GetAsync(requestConfig =>
-                {
-                    requestConfig.QueryParameters.Select = new[] { "userType", "identities" };
-                });
-
-                // Check user type and identities
-                var isNative = false;
-                if (me != null && me.UserType == "Member" && me.Identities != null)
-                {
-                    // Native users have a UPN identity
-                    isNative = me.Identities.Any(id => id.SignInType == "userPrincipalName");
-                }
-
-                if (!isNative)
-                {
-                    // Not a native user (guest, social, B2C, etc.)
-                    return BadRequest(new
-                    {
-                        code = "PasswordChangeNotSupported",
-                        message = "Password change is not supported for guest, social, or external users. Please change your password with your original provider (e.g., Google, Facebook) or use the external identities password reset flow if applicable.",
-                        resetUrl = "https://yourtenant.b2clogin.com/yourtenant.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=YOUR_CLIENT_ID&nonce=defaultNonce&redirect_uri=YOUR_REDIRECT_URI&scope=openid&response_type=id_token&prompt=login",
-                        requiredresetUrl = "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login",
-                    });
-                }
-
-                // This requires delegated permissions and a user token
-                await _graphServiceClient.Me.ChangePassword.PostAsync(new Microsoft.Graph.Me.ChangePassword.ChangePasswordPostRequestBody
-                {
-                    CurrentPassword = request.CurrentPassword,
-                    NewPassword = request.NewPassword
-                });
-                return Ok("Password changed successfully.");
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
-
-        [HttpPost("changeOwnPasswordDelegated")]
-        [Authorize]
-        public async Task<IActionResult> ChangeOwnPasswordDelegated([FromBody] SelfPasswordChangeRequest request)
-        {
-            if (request.NewPassword != request.ConfirmNewPassword)
-                return BadRequest("New password and confirmation do not match.");
-
-            if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
-                return BadRequest("Current and new password are required.");
-
-            try
-            {
-                // Get the current user's ID from the JWT token
-                var userId = User.FindFirst("oid")?.Value ?? User.FindFirst("sub")?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return BadRequest("Unable to identify the current user.");
-                }
-
-                // Create password change request like your MVC code
-                var passwordChangeRequest = new
-                {
-                    currentPassword = request.CurrentPassword,
-                    newPassword = request.NewPassword
-                };
-
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(passwordChangeRequest);
-                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-
-                // Create HTTP client for direct Graph API call
-                using var httpClient = new HttpClient();
-                httpClient.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
-                
-                // Get the current user's token from the Authorization header
-                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-                {
-                    return BadRequest("Valid Bearer token is required.");
-                }
-                
-                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authHeader.Substring(7));
-                httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-                // Make the password change request to the users endpoint (like your MVC code)
-                var response = await httpClient.PostAsync($"users/{userId}/changePassword", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return Ok("Password changed successfully.");
-                }
-                else
-                {
-                    return BadRequest($"Password change failed: {responseContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error changing password: {ex.Message}");
-            }
-        }
-
-        [HttpGet("passwordResetUrl")]
-        [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult GetPasswordResetUrl()
-        {
-            var url = "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1_passwordreset&client_id=<client-id>&nonce=defaultNonce&redirect_uri=<redirect-uri>&scope=openid&response_type=id_token&prompt=login";
-            return Ok(new { url });
+            // Placeholder: Replace with your actual logic to retrieve the access token from the user context/session
+            return await Task.FromResult(_httpContextAccessor.HttpContext.User.FindFirst("access_token")?.Value);
         }
 
     }

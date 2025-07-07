@@ -6,38 +6,37 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 ## Authentication & Authorization (Azure AD)
 
-### Supported Flow: OAuth2 Authorization Code with PKCE (Recommended)
+### Supported Flow: OAuth2 Authorization Code with PKCE
 
-- **Swagger UI** is configured for the Authorization Code flow with PKCE, supporting secure, interactive login for work/school (Azure AD) accounts from any tenant (multitenant).
+- **Swagger UI** is configured for the Authorization Code flow with PKCE, supporting secure, interactive login for any Microsoft account (work, school, or personal).
 - **Redirect URI:**
-  - `https://localhost:demo/swagger/oauth2-redirect.html` (must be registered in Azure AD)
+  - `https://localhost:7110/swagger/oauth2-redirect.html` (must be registered in Azure AD)
 - **Supported account types:**
-  - "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant)"
-- **Scopes:**
-  - Example: `api.read` (replace with your actual API permissions)
+  - "Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox)"
+- **Scope:**
+  - `api.read` (Read access to API, as mentioned in Microsoft document)
 
 #### How to Use in Swagger UI
 1. Click **Authorize** in Swagger UI.
-2. Log in with a work/school (Azure AD) account.
+2. Log in with any Microsoft account (work, school, or personal).
 3. Consent to the requested permissions.
-4. The access token will be used for authorized API calls (e.g., password change endpoints).
+4. The access token will be used for authorized API calls (e.g., password change endpoint).
 
 > **Note:**
-> - Personal Microsoft accounts (e.g., @outlook.com, @hotmail.com) are not supported unless your Azure AD registration allows them (not available in all tenants).
-> - Federated users are supported if their domain is properly federated and allowed in Azure AD.
+> - The access token must include the `Directory.AccessAsUser.All` delegated permission to use the password change endpoint. This is automatically requested by Swagger UI during login.
+> - Some Microsoft Graph permissions may not be available to personal accounts. See [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference).
+> - The redirect URI must match exactly in Azure AD and Swagger config.
 
 ---
 
 ## Key Endpoints
 
-| Endpoint                        | Method | Description                                 | Auth Required |
-|---------------------------------|--------|---------------------------------------------|--------------|
-| `/Graph/changePasswordById`     | POST   | Admin changes user password by ID           | Yes          |
-| `/Graph/changePasswordByEmail`  | POST   | Admin changes user password by email        | Yes          |
-| `/Graph/changeOwnPassword`      | POST   | User changes their own password (delegated) | Yes          |
-| `/WeatherForecast`              | GET    | Demo endpoint, no auth required             | No           |
+| Endpoint                  | Method | Description                                 | Auth Required |
+|--------------------------|--------|---------------------------------------------|--------------|
+| `/graph/changePassword`  | POST   | User changes their own password (delegated) | Yes          |
+| `/WeatherForecast`       | GET    | Demo endpoint, no auth required             | No           |
 
-- All password change endpoints require a valid Azure AD access token with appropriate permissions.
+- The password change endpoint requires a valid Microsoft access token with the `Directory.AccessAsUser.All` delegated permission.
 - Use the **Authorize** button in Swagger UI to obtain a token.
 
 ---
@@ -45,30 +44,31 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 ## Azure AD App Registration Checklist
 
 - Register your API in Azure AD.
-- Set **Supported account types** to: Any Microsoft Entra ID tenant (multitenant).
-- Add the redirect URI: `https://localhost:demo/swagger/oauth2-redirect.html` (type: Web).
-- Assign required Microsoft Graph API permissions (e.g., `User.ReadWrite.All`, `Directory.AccessAsUser.All`).
+- Set **Supported account types** to: Any Microsoft account (multitenant + personal).
+- Add the redirect URI: `https://localhost:7110/swagger/oauth2-redirect.html` (type: Web).
+- Assign required Microsoft Graph API permissions (e.g., `Directory.AccessAsUser.All`).
 - Grant admin consent for application permissions if needed.
+
+---
+
+## Token Usage and Permissions
+
+- **Delegated user tokens** are required for the `/graph/changePassword` endpoint.
+- The access token must have the `Directory.AccessAsUser.All` permission.
+- When you log in via Swagger UI, the correct scope is requested and the token is automatically used for API calls.
+- Application (app-only) tokens and legacy flows are not supported for password change.
 
 ---
 
 ## Troubleshooting
 
 - **AADSTS500208:** The domain is not a valid login domain for the account type.
-  - Ensure you are using a work/school (Azure AD) account.
-  - Make sure your app registration is set to multitenant.
+  - Ensure you are using a supported Microsoft account.
+  - Make sure your app registration is set to allow any Microsoft account.
   - Confirm the redirect URI is registered in Azure AD.
-  - Federated users must be allowed by your Azure AD configuration.
-- **CORS/PKCE Issues:**
+- **CORS/PKCE/Redirect URI Issues:**
   - Always use the Authorization Code flow with PKCE in Swagger UI for browser-based authentication.
-  - Client credentials flow is not supported directly in Swagger UI with Azure AD due to CORS restrictions.
-
----
-
-## Removed/Legacy Items
-
-- Legacy endpoints and flows (e.g., ROPC, direct client credentials in Swagger UI) have been removed for security and compatibility reasons.
-- Only the Authorization Code flow with PKCE is supported for interactive login in Swagger UI.
+  - The redirect URI in Azure AD must match exactly what is used in Swagger UI.
 
 ---
 
@@ -76,8 +76,21 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 1. Clone the repo and configure your Azure AD app registration as described above.
 2. Run the API locally.
-3. Open Swagger UI at `https://localhost:demo/swagger`.
+3. Open Swagger UI at `https://localhost:7110/swagger`.
 4. Click **Authorize**, log in, and test the endpoints.
+
+### Example: Change Password via Swagger UI
+
+1. Click **Authorize** and log in with your Microsoft account.
+2. Go to the `/graph/changePassword` endpoint and click **Try it out**.
+3. Enter the request body:
+   ```json
+   {
+     "currentPassword": "yourCurrentPassword",
+     "newPassword": "yourNewPassword"
+   }
+   ```
+4. Click **Execute**. You should receive a `204 No Content` response on success.
 
 ---
 
