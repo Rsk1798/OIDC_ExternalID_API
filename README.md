@@ -490,12 +490,12 @@ Content-Type: application/json
 **Query Parameter:**
 - `idOrEmail` (string): User object ID or email address.
 
-**Authorization:** Requires Bearer token in Authorization header.
+**Authorization:** Requires Bearer token in Authorization header (**admin token** for deleting other users; user token for deleting own profile).
 
 **Example:**
 ```
 DELETE /Graph/deleteUserById?idOrEmail=user@yourtenant.onmicrosoft.com
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi... (admin or user token)
 ```
 
 **Response:**
@@ -513,12 +513,12 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
 **Query Parameter:**
 - `email` (string): User email address.
 
-**Authorization:** Requires Bearer token in Authorization header.
+**Authorization:** Requires Bearer token in Authorization header (**admin token** for deleting other users; user token for deleting own profile).
 
 **Example:**
 ```
 DELETE /Graph/deleteUserByEmail?email=user@yourtenant.onmicrosoft.com
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi... (admin or user token)
 ```
 
 **Response:**
@@ -581,12 +581,12 @@ Content-Type: application/json
 }
 ```
 
-**Authorization:** Requires Bearer token in Authorization header (admin token).
+**Authorization:** Requires Bearer token in Authorization header (**admin token**).
 
 **Example:**
 ```
 PATCH /Graph/resetPasswordById?idOrEmail=user@yourtenant.onmicrosoft.com
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi... (admin token)
 Content-Type: application/json
 
 {
@@ -613,12 +613,12 @@ Content-Type: application/json
 
 **Request Body:** Same as `/Graph/resetPasswordById`
 
-**Authorization:** Requires Bearer token in Authorization header (admin token).
+**Authorization:** Requires Bearer token in Authorization header (**admin token**).
 
 **Example:**
 ```
 PATCH /Graph/resetPasswordByEmail?email=user@yourtenant.onmicrosoft.com
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi... (admin token)
 Content-Type: application/json
 
 {
