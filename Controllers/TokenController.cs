@@ -64,12 +64,28 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
+        [HttpPost("store-code-verifier")]
+        [AllowAnonymous]
+        public IActionResult StoreCodeVerifier([FromBody] string codeVerifier)
+        {
+            if (string.IsNullOrEmpty(codeVerifier))
+            {
+                return BadRequest("code_verifier is required");
+            }
+            HttpContext.Session.SetString("pkce_code_verifier", codeVerifier);
+            return Ok();
+        }
+
         private async Task<object> ExchangeCodeForToken(string authorizationCode)
         {
             var tenantId = _config["AzureAd:TenantId"];
             var clientId = _config["AzureAd:ClientId"];
-            var clientSecret = _config["AzureAd:ClientSecret"];
             var redirectUri = $"{Request.Scheme}://{Request.Host}/Token/callback";
+            var codeVerifier = HttpContext.Session.GetString("pkce_code_verifier");
+            if (string.IsNullOrEmpty(codeVerifier))
+            {
+                throw new Exception("PKCE code_verifier is missing from session. Please initiate the flow correctly.");
+            }
 
             using var client = new HttpClient();
             var parameters = new Dictionary<string, string>
@@ -79,7 +95,7 @@ namespace OIDC_ExternalID_API.Controllers
                 {"code", authorizationCode},
                 {"redirect_uri", redirectUri},
                 {"grant_type", "authorization_code"},
-                {"client_secret", clientSecret}
+                {"code_verifier", codeVerifier}
             };
 
             var content = new FormUrlEncodedContent(parameters);
@@ -154,97 +170,8 @@ namespace OIDC_ExternalID_API.Controllers
         }
     }
 
-    public class TokenRequestModel
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-
-    }
-
     public class RefreshTokenRequest
     {
         public string RefreshToken { get; set; }
-    }
-
-    public class TokenGenerationRequest
-    {
-        public string GrantType { get; set; } // "client_credentials", "password", "refresh_token"
-        public string Username { get; set; } // For password grant type
-        public string Password { get; set; } // For password grant type
-        public string RefreshToken { get; set; } // For refresh_token grant type
-        public string Scope { get; set; } // Optional, defaults will be used if not provided
-    }
-
-    public class OAuth2ClientCredentialsRequest
-    {
-        // These are optional - will use appsettings.json values if not provided
-        [Description("Client ID from Azure AD app registration (optional - uses appsettings.json if not provided)")]
-        public string? ClientId { get; set; }
-        
-        [Description("Client secret from Azure AD app registration (optional - uses appsettings.json if not provided)")]
-        public string? ClientSecret { get; set; }
-        
-        [Description("Tenant ID or domain (optional - uses appsettings.json if not provided)")]
-        public string? TenantId { get; set; }
-        
-        // User-configurable parameters with default values
-        [Description("Scope for the token (defaults to https://graph.microsoft.com/.default)")]
-        [DefaultValue("https://graph.microsoft.com/.default")]
-        public string Scope { get; set; } = "https://graph.microsoft.com/.default";
-        
-        [Description("Authentication method: 'basic_auth' (Authorization header) or 'body' (request body)")]
-        [DefaultValue("basic_auth")]
-        public string ClientAuthentication { get; set; } = "basic_auth"; // "basic_auth" or "body"
-        
-        [Description("Name for the token (defaults to GraphToken)")]
-        [DefaultValue("GraphToken")]
-        public string TokenName { get; set; } = "GraphToken";
-    }
-
-    public class OAuth2AuthorizationCodeRequest
-    {
-        // These are optional - will use appsettings.json values if not provided
-        [Description("Client ID from Azure AD app registration (optional - uses appsettings.json if not provided)")]
-        public string? ClientId { get; set; }
-        
-        [Description("Client secret from Azure AD app registration (optional - uses appsettings.json if not provided)")]
-        public string? ClientSecret { get; set; }
-        
-        [Description("Tenant ID or domain (optional - uses appsettings.json if not provided)")]
-        public string? TenantId { get; set; }
-        
-        // Required parameter
-        [Required]
-        [Description("Authorization code received from the authorization URL")]
-        public string AuthorizationCode { get; set; } = string.Empty;
-        
-        // User-configurable parameters with default values
-        [Description("Redirect URI (must match the one used in authorization URL)")]
-        [DefaultValue("https://oauth.pstmn.io/v1/callback")]
-        public string RedirectUri { get; set; } = "https://oauth.pstmn.io/v1/callback";
-        
-        [Description("Scope for the token (defaults to https://graph.microsoft.com/.default)")]
-        [DefaultValue("https://graph.microsoft.com/.default")]
-        public string Scope { get; set; } = "https://graph.microsoft.com/.default";
-        
-        [Description("Name for the token (defaults to GraphToken)")]
-        [DefaultValue("GraphToken")]
-        public string TokenName { get; set; } = "GraphToken";
-        
-        [Description("Authentication method: 'basic_auth' (Authorization header) or 'body' (request body)")]
-        [DefaultValue("basic_auth")]
-        public string ClientAuthentication { get; set; } = "basic_auth"; // "basic_auth" or "body"
-    }
-
-    public class AuthorizationUrlRequest
-    {
-        // These are optional - will use appsettings.json values if not provided
-        public string? ClientId { get; set; }
-        public string? TenantId { get; set; }
-        
-        // User-configurable parameters with default values
-        public string RedirectUri { get; set; } = "https://oauth.pstmn.io/v1/callback";
-        public string Scope { get; set; } = "https://graph.microsoft.com/.default";
-        public string? State { get; set; } // Auto-generated if not provided
     }
 }

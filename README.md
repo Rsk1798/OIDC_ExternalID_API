@@ -970,3 +970,78 @@ When you use PKCE from Swagger UI (OAuth2 Authorization Code flow with PKCE), yo
 - PKCE is a security feature for the login flow and does not limit which endpoints you can use; endpoint access depends on user type and permissions.
 - All users can use profile and general endpoints; only tenant-managed users can use password endpoints.
 - If you get an error, check the user's type and the scopes granted to the access token.
+
+
+
+---
+
+## Testing the API with Swagger UI and Azure AD Roles
+
+### Prerequisites
+- API is deployed and accessible (e.g., `https://your-api.azurewebsites.net/swagger`).
+- Azure AD App Registration is configured with:
+  - Redirect URI: `https://your-api.azurewebsites.net/swagger/oauth2-redirect.html`
+  - Required Microsoft Graph API permissions: `User.Read.All`, `User.ReadWrite.All`, `Directory.AccessAsUser.All`, `offline_access`, `openid`.
+- Users are assigned to appropriate roles in Azure AD (Global Admin, User Admin, Helpdesk Admin, Regular User, etc.).
+
+---
+
+### How to Test as Different Users/Roles
+
+1. **Open Swagger UI**
+   - Go to your API’s Swagger UI: `https://your-api.azurewebsites.net/swagger`
+
+2. **Authenticate via OAuth2 (PKCE)**
+   - Click the **Authorize** button (top right).
+   - Select the scopes you want to test with (choose all for admin, or just `User.Read` for regular user).
+   - Click **Authorize**.
+   - Sign in as the user you want to test (admin, helpdesk, regular user, B2B guest, etc.).
+   - Consent to permissions if prompted.
+   - After login, you’ll be redirected back to Swagger UI, and the access token will be used for API calls.
+
+3. **Test API Endpoints**
+   - Click on an endpoint (e.g., `/Graph/resetPasswordById`, `/Graph/changePassword`, `/Graph/deleteUserById`).
+   - Click **Try it out**, fill in parameters, and click **Execute**.
+   - Admin endpoints will only succeed for users with the required admin role. Self-service endpoints work for regular users.
+
+4. **Switch Users/Roles**
+   - Click **Authorize** again, then **Logout**.
+   - Repeat the authentication process as a different user/role.
+   - Test endpoints again.
+
+5. **Check Responses**
+   - 200 = Success
+   - 401 = Not authenticated
+   - 403 = Not authorized (insufficient role/permission)
+
+6. **(Optional) Inspect Token Claims**
+   - After authenticating, copy the access token and paste it at [jwt.ms](https://jwt.ms) to inspect user roles and claims.
+
+---
+
+### Role-Based Access Summary Table
+
+| Role           | Can Reset Others' Passwords | Can Delete Other Users | Can Change Own Password | Can Update/Delete Own Profile |
+|----------------|:--------------------------:|:---------------------:|:-----------------------:|:-----------------------------:|
+| Global Admin   | Yes                        | Yes                   | Yes                     | Yes                           |
+| User Admin     | Yes                        | Yes                   | Yes                     | Yes                           |
+| Helpdesk Admin | Yes                        | Yes                   | Yes                     | Yes                           |
+| Regular User   | No                         | No                    | Yes                     | Yes                           |
+| B2B/B2C Guest  | No (unless assigned)       | No                    | Yes                     | Yes                           |
+
+---
+
+### Troubleshooting
+- **401 Unauthorized:** Not authenticated. Make sure you are signed in and the token is present.
+- **403 Forbidden:** Authenticated but do not have the required role/permission for the endpoint.
+- **Consent/Permission Errors:** Check Azure AD App Registration and API permissions.
+
+---
+
+### Notes on Token Endpoints
+- The `/Token/callback` and `/Token/refresh` endpoints in the API are **not required** when using Swagger UI. Swagger UI handles the full OAuth2 Authorization Code flow with PKCE and token refresh directly with Azure AD.
+- Your API acts as a resource server, validating Bearer tokens sent by Swagger UI.
+
+---
+
+For more details on endpoint permissions and roles, see the API Usage Guide and endpoint documentation above.
