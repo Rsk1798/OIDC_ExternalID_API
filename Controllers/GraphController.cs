@@ -248,6 +248,71 @@ namespace OIDC_ExternalID_API.Controllers
             return StatusCode((int)response.StatusCode, error);
         }
 
+        [HttpPatch("resetPasswordById")]
+        [Authorize]
+        public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] ResetPasswordModel model)
+        {
+            try
+            {
+                var user = new User
+                {
+                    PasswordProfile = new PasswordProfile
+                    {
+                        Password = model.NewPassword,
+                        ForceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn,
+                        ForceChangePasswordNextSignInWithMfa = model.ForceChangePasswordNextSignInWithMfa
+                    }
+                };
+
+                // This line calls the Graph API to update the user's password profile
+                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
+
+                return Ok($"Password reset successfully for user {idOrEmail}. User will be required to change password on next sign-in: {model.ForceChangePasswordNextSignIn}");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+        [HttpPatch("resetPasswordByEmail")]
+        [Authorize]
+        public async Task<IActionResult> ResetPasswordByEmail([FromQuery] string email, [FromBody] ResetPasswordModel model)
+        {
+            try
+            {
+                // First, find the user by email
+                var users = await _graphServiceClient.Users
+                    .GetAsync(requestConfig =>
+                    {
+                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+                    });
+
+                var user = users?.Value?.FirstOrDefault();
+                if (user == null)
+                    return NotFound("User not found.");
+
+                var userUpdate = new User
+                {
+                    PasswordProfile = new PasswordProfile
+                    {
+                        Password = model.NewPassword,
+                        ForceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn,
+                        ForceChangePasswordNextSignInWithMfa = model.ForceChangePasswordNextSignInWithMfa
+                    }
+                };
+
+                // Update the user's password profile using their ID
+                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+
+                return Ok($"Password reset successfully for user with email '{email}'. User will be required to change password on next sign-in: {model.ForceChangePasswordNextSignIn}");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
         private async Task<string> GetAccessTokenAsync()
         {
             // Placeholder: Replace with your actual logic to retrieve the access token from the user context/session
