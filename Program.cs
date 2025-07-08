@@ -90,8 +90,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSwaggerUI", policy =>
     {
         policy
-            // .WithOrigins("https://localhost:7110") // <-- Replace with your Swagger UI origin
-            .AllowAnyOrigin()
+            //https://localhost:7110
+            .WithOrigins("https://externalid-restapi-hcbvbpeef6c8gbay.southeastasia-01.azurewebsites.net") // <-- Replace with your Swagger UI origin
+            //.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
