@@ -763,3 +763,45 @@ curl -X POST "https://localhost:demo/Graph/changePassword" \
 ---
 
 For further details or advanced scenarios, refer to Microsoft documentation on [OAuth2 flows in Azure AD](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) and [Microsoft Graph permissions](https://learn.microsoft.com/en-us/graph/permissions-reference).
+
+## PKCE and External Identities Users
+
+### What is PKCE?
+PKCE (Proof Key for Code Exchange) is a security feature used in the OAuth2 Authorization Code flow. It protects the login process for all users—regardless of how they were created (native, B2B, B2C, social, etc.). PKCE prevents attackers from intercepting the authorization code and exchanging it for a token. It is required for browser-based and public clients, and is recommended by Microsoft for all modern authentication scenarios.
+
+- **PKCE is not tied to user type.** It is a security mechanism for the login flow.
+- **All users** (B2B, B2C, social/federated) authenticate using PKCE if your app is configured for it.
+
+---
+
+## API Endpoint Support for External Identities Users
+
+The table below shows which API endpoints are available to different user types created via Azure AD External Identities:
+
+| Endpoint                        | B2B Guest | B2C Local | Social/Federated |
+|----------------------------------|:---------:|:---------:|:----------------:|
+| `/Graph/getUserById`             |    ✅     |    ✅     |        ✅        |
+| `/Graph/getUserByEmail`          |    ✅     |    ✅     |        ✅        |
+| `/Graph/updateUserById`          |    ✅     |    ✅     |        ✅        |
+| `/Graph/updateUserAttributesById`|    ✅     |    ✅     |        ✅        |
+| `/Graph/deleteUserById`          |    ✅     |    ✅     |        ✅        |
+| `/Graph/deleteUserByEmail`       |    ✅     |    ✅     |        ✅        |
+| `/Graph/changePassword`          |    ✅     |    ✅     |        ❌*       |
+| `/Graph/resetPasswordById`       |    ✅     |    ✅     |        ❌*       |
+| `/Graph/resetPasswordByEmail`    |    ✅     |    ✅     |        ❌*       |
+| `/Graph/requestPasswordReset`    |    ✅     |    ✅     |        ❌*       |
+| `/Graph/completePasswordReset`   |    ✅     |    ✅     |        ❌*       |
+
+- **✅ = Supported**
+- **❌ = Not supported for social/federated users** (must reset password with their original provider)
+- *Social/federated users (e.g., Google, Facebook) must use their provider's password reset flow, not the API's password endpoints.
+
+---
+
+### Summary
+- **PKCE** is a security feature for the login flow, not tied to user type.
+- **All users** (B2B, B2C, social) can authenticate and get tokens using PKCE.
+- **API endpoints that do not involve password change** will work for all users.
+- **Password change/reset endpoints** only work for users whose credentials are managed by your Azure AD/B2C tenant (not for social/federated users).
+
+If you want to support password reset for social users, you must redirect them to their provider's password reset flow.
