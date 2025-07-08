@@ -85,18 +85,18 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Add this before builder.Build()
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSwaggerUI", policy =>
-    {
-        policy
-            //https://localhost:7110
-            .WithOrigins("https://externalid-restapi-hcbvbpeef6c8gbay.southeastasia-01.azurewebsites.net") // <-- Replace with your Swagger UI origin
-            //.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("AllowSwaggerUI", policy =>
+//     {
+//         policy
+//             //https://localhost:7110
+//             .WithOrigins("https://externalid-restapi-hcbvbpeef6c8gbay.southeastasia-01.azurewebsites.net") // <-- Replace with your Swagger UI origin
+//             //.AllowAnyOrigin()
+//             .AllowAnyHeader()
+//             .AllowAnyMethod();
+//     });
+// });
 
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
@@ -119,7 +119,7 @@ var app = builder.Build();
 // }
 
 // After app creation, before app.UseAuthorization()
-app.UseCors("AllowSwaggerUI");
+//app.UseCors("AllowSwaggerUI");
 
 app.UseHttpsRedirection();
 
