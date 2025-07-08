@@ -199,6 +199,446 @@ This API implements role-based access control based on Azure AD roles and permis
 
 ---
 
+## API Usage Guide
+
+This section provides detailed documentation for all available endpoints in the API.
+
+### Authentication & Token Endpoints
+
+#### POST `/Token/refresh`
+**Purpose:** Refresh an access token using a refresh token.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "your_refresh_token"
+}
+```
+
+**Response:**
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
+  "refresh_token": "new_refresh_token_here",
+  "expires_in": 3599,
+  "token_type": "Bearer",
+  "scope": "Directory.AccessAsUser.All User.Read"
+}
+```
+
+**Use:** Use this endpoint to get a new access token when the current one expires.
+
+---
+
+### User Management Endpoints
+
+#### GET `/Graph/getUserById`
+**Purpose:** Get user details by object ID or email.
+
+**Query Parameter:**
+- `idOrEmail` (string): User object ID or email address.
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+GET /Graph/getUserById?idOrEmail=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+```
+
+**Response:**
+```json
+{
+  "id": "8afc02cb-4d62-4dba-b536-9f6d73e9be26",
+  "displayName": "John Doe",
+  "userPrincipalName": "john.doe@yourtenant.onmicrosoft.com",
+  "mail": "john.doe@yourtenant.onmicrosoft.com",
+  "jobTitle": "Software Engineer",
+  "department": "Engineering"
+}
+```
+
+---
+
+#### GET `/Graph/getUserByEmail`
+**Purpose:** Get user details by email address.
+
+**Query Parameter:**
+- `email` (string): User email address.
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+GET /Graph/getUserByEmail?email=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+```
+
+**Response:** Same as `/Graph/getUserById`
+
+---
+
+#### PATCH `/Graph/updateUserById`
+**Purpose:** Update user attributes by object ID or email.
+
+**Query Parameter:**
+- `idOrEmail` (string): User object ID or email address.
+
+**Request Body:** Any valid user attributes as key-value pairs.
+```json
+{
+  "jobTitle": "Senior Software Engineer",
+  "department": "Engineering",
+  "officeLocation": "Building A, Floor 3"
+}
+```
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+PATCH /Graph/updateUserById?idOrEmail=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "jobTitle": "Senior Software Engineer",
+  "department": "Engineering"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "User Updated Successfully."
+}
+```
+
+---
+
+#### PATCH `/Graph/updateUserAttributesById`
+**Purpose:** Update limited user attributes (displayName, jobTitle, department).
+
+**Query Parameter:**
+- `idOrEmail` (string): User object ID or email address.
+
+**Request Body:**
+```json
+{
+  "displayName": "John Smith",
+  "jobTitle": "Manager",
+  "department": "IT"
+}
+```
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+PATCH /Graph/updateUserAttributesById?idOrEmail=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "displayName": "John Smith",
+  "jobTitle": "Manager",
+  "department": "IT"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "User Updated with Limited Attributes"
+}
+```
+
+---
+
+#### DELETE `/Graph/deleteUserById`
+**Purpose:** Delete a user by object ID or email.
+
+**Query Parameter:**
+- `idOrEmail` (string): User object ID or email address.
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+DELETE /Graph/deleteUserById?idOrEmail=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+```
+
+**Response:**
+```json
+{
+  "message": "User deleted successfully."
+}
+```
+
+---
+
+#### DELETE `/Graph/deleteUserByEmail`
+**Purpose:** Delete a user by email address.
+
+**Query Parameter:**
+- `email` (string): User email address.
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+DELETE /Graph/deleteUserByEmail?email=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+```
+
+**Response:**
+```json
+{
+  "message": "User with email 'user@yourtenant.onmicrosoft.com' deleted successfully."
+}
+```
+
+---
+
+### Password Management Endpoints
+
+#### POST `/Graph/changePassword`
+**Purpose:** User changes their own password (self-service).
+
+**Request Body:**
+```json
+{
+  "currentPassword": "OldPassword123!",
+  "newPassword": "NewPassword456!"
+}
+```
+
+**Authorization:** Requires Bearer token in Authorization header (user's own token).
+
+**Example:**
+```
+POST /Graph/changePassword
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "currentPassword": "OldPassword123!",
+  "newPassword": "NewPassword456!"
+}
+```
+
+**Response:** `204 No Content` on success.
+
+**Notes:**
+- User can only change their own password
+- Requires `Directory.AccessAsUser.All` delegated permission
+- Works for Azure AD users, B2B guests, and federated social accounts
+
+---
+
+#### PATCH `/Graph/resetPasswordById`
+**Purpose:** Admin resets a user's password by object ID or email.
+
+**Query Parameter:**
+- `idOrEmail` (string): User object ID or email address.
+
+**Request Body:**
+```json
+{
+  "newPassword": "NewPassword123!",
+  "forceChangePasswordNextSignIn": true,
+  "forceChangePasswordNextSignInWithMfa": false
+}
+```
+
+**Authorization:** Requires Bearer token in Authorization header (admin token).
+
+**Example:**
+```
+PATCH /Graph/resetPasswordById?idOrEmail=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "newPassword": "NewPassword123!",
+  "forceChangePasswordNextSignIn": true,
+  "forceChangePasswordNextSignInWithMfa": false
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Password reset successfully for user user@yourtenant.onmicrosoft.com. User will be required to change password on next sign-in: true"
+}
+```
+
+---
+
+#### PATCH `/Graph/resetPasswordByEmail`
+**Purpose:** Admin resets a user's password by email address.
+
+**Query Parameter:**
+- `email` (string): User email address.
+
+**Request Body:** Same as `/Graph/resetPasswordById`
+
+**Authorization:** Requires Bearer token in Authorization header (admin token).
+
+**Example:**
+```
+PATCH /Graph/resetPasswordByEmail?email=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "newPassword": "NewPassword123!",
+  "forceChangePasswordNextSignIn": true,
+  "forceChangePasswordNextSignInWithMfa": false
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Password reset successfully for user with email 'user@yourtenant.onmicrosoft.com'. User will be required to change password on next sign-in: true"
+}
+```
+
+---
+
+### Demo Endpoint
+
+#### GET `/WeatherForecast`
+**Purpose:** Demo endpoint for testing API connectivity.
+
+**Authorization:** None required.
+
+**Example:**
+```
+GET /WeatherForecast
+```
+
+**Response:**
+```json
+[
+  {
+    "date": "2024-01-15",
+    "temperatureC": 14,
+    "temperatureF": 57,
+    "summary": "Mild"
+  },
+  {
+    "date": "2024-01-16",
+    "temperatureC": 16,
+    "temperatureF": 60,
+    "summary": "Warm"
+  }
+]
+```
+
+---
+
+### Error Responses
+
+All endpoints may return the following error responses:
+
+#### 400 Bad Request
+```json
+{
+  "error": {
+    "code": "Request_BadRequest",
+    "message": "Invalid request format or missing required parameters"
+  }
+}
+```
+
+#### 401 Unauthorized
+```json
+{
+  "error": {
+    "code": "Authentication_MissingOrMalformed",
+    "message": "Authorization header is missing or invalid"
+  }
+}
+```
+
+#### 403 Forbidden
+```json
+{
+  "error": {
+    "code": "InsufficientPermissions",
+    "message": "User does not have sufficient permissions for this operation"
+  }
+}
+```
+
+#### 404 Not Found
+```json
+{
+  "error": {
+    "code": "Request_ResourceNotFound",
+    "message": "User not found."
+  }
+}
+```
+
+#### 500 Internal Server Error
+```json
+{
+  "error": {
+    "code": "InternalServerError",
+    "message": "An unexpected error occurred"
+  }
+}
+```
+
+---
+
+### Testing with Swagger UI
+
+1. **Open Swagger UI:** Navigate to `https://localhost:demo/swagger`
+2. **Authorize:** Click the "Authorize" button and log in with your Azure AD account
+3. **Test Endpoints:** Use the interactive interface to test all endpoints
+4. **View Documentation:** Each endpoint includes detailed parameter descriptions
+
+---
+
+### Testing with cURL
+
+#### Example: Get User by Email
+```bash
+curl -X GET "https://localhost:demo/Graph/getUserByEmail?email=user@yourtenant.onmicrosoft.com" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+#### Example: Update User Attributes
+```bash
+curl -X PATCH "https://localhost:demo/Graph/updateUserAttributesById?idOrEmail=user@yourtenant.onmicrosoft.com" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "displayName": "John Smith",
+    "jobTitle": "Manager",
+    "department": "IT"
+  }'
+```
+
+#### Example: Change Password
+```bash
+curl -X POST "https://localhost:demo/Graph/changePassword" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currentPassword": "OldPassword123!",
+    "newPassword": "NewPassword456!"
+  }'
+```
+
+---
+
 ## Authentication & Authorization (Azure AD)
 
 ### Supported Flow: OAuth2 Authorization Code with PKCE
