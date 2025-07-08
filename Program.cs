@@ -90,7 +90,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSwaggerUI", policy =>
     {
         policy
-            .WithOrigins("https://localhost:7110") // <-- Replace with your Swagger UI origin
+            // .WithOrigins("https://localhost:7110") // <-- Replace with your Swagger UI origin
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -111,7 +112,8 @@ var app = builder.Build();
         c.OAuthClientId("your-client-id"); // TODO: Replace with your Azure AD App Registration client ID
         c.OAuthScopes("User.Read.All", "User.ReadWrite.All", "Directory.AccessAsUser.All", "offline_access", "openid");
         c.OAuthUsePkce(); // Required for Authorization Code flow with PKCE
-        c.OAuth2RedirectUrl("https://localhost:7110/swagger/oauth2-redirect.html"); // TODO: Ensure this matches your Azure AD app registration
+        c.OAuth2RedirectUrl("https://externalid-restapi-hcbvbpeef6c8gbay.southeastasia-01.azurewebsites.net/swagger/oauth2-redirect.html"); // TODO: Ensure this matches your Azure AD app registration
+        // https://localhost:7110/swagger/oauth2-redirect.html
     });
 // }
 
