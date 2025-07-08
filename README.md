@@ -256,8 +256,8 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
 
 **Response:**
 ```json
-{
-  "id": "8afc02cb-4d62-4dba-b536-9f6d73e9be26",
+    {
+      "id": "8afc02cb-4d62-4dba-b536-9f6d73e9be26",
   "displayName": "John Doe",
   "userPrincipalName": "john.doe@yourtenant.onmicrosoft.com",
   "mail": "john.doe@yourtenant.onmicrosoft.com",
@@ -539,8 +539,8 @@ Content-Type: application/json
 ```
 
 **Response:**
-```json
-{
+  ```json
+  {
   "message": "If the email address exists in our system, a verification code has been sent.",
   "verificationCode": "123456",
   "expiresIn": "15 minutes"
@@ -740,8 +740,12 @@ curl -X POST "https://localhost:demo/Graph/changePassword" \
   - `https://localhost:demo/swagger/oauth2-redirect.html` (must be registered in Azure AD)
 - **Supported account types:**
   - "Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox)"
-- **Scope:**
-  - `api.read` (Read access to API, as mentioned in Microsoft document)
+- **Required Scopes:**
+  - `User.Read.All` - Read all users' full profiles
+  - `User.ReadWrite.All` - Read and write all users' full profiles
+  - `Directory.AccessAsUser.All` - Access directory as the signed-in user
+  - `offline_access` - Maintain access to data (for refresh tokens)
+  - `openid` - Sign users in
 
 #### How to Use in Swagger UI
 1. Click **Authorize** in Swagger UI.
@@ -750,7 +754,9 @@ curl -X POST "https://localhost:demo/Graph/changePassword" \
 4. The access token will be used for authorized API calls (e.g., password change endpoint).
 
 > **Note:**
-> - The access token must include the `Directory.AccessAsUser.All` delegated permission to use the password change endpoint. This is automatically requested by Swagger UI during login.
+> - The access token must include the required Microsoft Graph delegated permissions to use the API endpoints.
+> - `Directory.AccessAsUser.All` is required for password change operations.
+> - `User.Read.All` and `User.ReadWrite.All` are required for user management operations.
 > - Some Microsoft Graph permissions may not be available to personal accounts. See [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference).
 > - The redirect URI must match exactly in Azure AD and Swagger config.
 
