@@ -207,6 +207,48 @@ This API implements role-based access control based on Azure AD roles and permis
 
 ---
 
+## Troubleshooting: External Identities User Sign-In Issues
+
+If you create a user (e.g., with a Gmail or other external domain) via an Azure AD External Identities user flow (B2C/B2B), and then try to authenticate or use API endpoints via Swagger UI, you may encounter errors like:
+- "The domain is not valid"
+- "User is not present in the tenant"
+- "User not found"
+
+### Why does this happen?
+- **User type and sign-in method mismatch:**
+  - If the user was created as a federated user (e.g., Google), they must sign in using the same provider (Google) via the correct user flow.
+  - If you try to sign in with a password for a federated user, or vice versa, authentication will fail.
+- **Wrong user flow or policy:**
+  - Azure AD B2C/B2B uses different user flows (policies) for different identity providers. Using the wrong flow will cause errors.
+- **Swagger UI or App Registration not configured for external identities:**
+  - Ensure your OAuth2 config and Azure AD App Registration support external identities and the correct user flows.
+- **Domain restrictions:**
+  - Your Azure AD tenant may restrict which domains can sign in.
+
+### How to resolve
+1. **Check how the user was created** (local or federated) in Azure AD (see the PKCE and External Identities Users section above).
+2. **Use the correct sign-in method** for that user type (e.g., Google users must use "Sign in with Google").
+3. **Ensure your OAuth2 endpoints and policies match the user type:**
+   - For B2C, use the B2C-specific endpoints and policies in your OAuth2 config:
+     ```
+     https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1A_SIGNIN
+     ```
+   - For B2B or multi-tenant, use the appropriate Azure AD endpoint.
+4. **Check allowed domains** in Azure AD > External Identities > Cross-tenant access settings.
+
+### Summary Table
+| User Type      | How to Sign In                | Common Error if Wrong Flow      |
+|----------------|------------------------------|---------------------------------|
+| Local Account  | Username/password (local)    | "Domain not valid", "User not found" |
+| Google/Federated| "Sign in with Google" button | "Domain not valid", "User not found" |
+| B2B Guest      | Home tenant credentials      | "User not found", "Domain not valid" |
+
+**Tip:**
+- Always use the correct user flow and OAuth2 endpoint for the user type.
+- If you get a domain or user error, double-check the user's identity provider and the sign-in method you are using.
+
+---
+
 ## API Usage Guide
 
 This section provides detailed documentation for all available endpoints in the API.
@@ -667,8 +709,8 @@ All endpoints may return the following error responses:
 ```
 
 #### 404 Not Found
-```json
-{
+  ```json
+  {
   "error": {
     "code": "Request_ResourceNotFound",
     "message": "User not found."
@@ -770,7 +812,7 @@ For further details or advanced scenarios, refer to Microsoft documentation on [
 PKCE (Proof Key for Code Exchange) is a security feature used in the OAuth2 Authorization Code flow. It protects the login process for all users—regardless of how they were created (native, B2B, B2C, social, etc.). PKCE prevents attackers from intercepting the authorization code and exchanging it for a token. It is required for browser-based and public clients, and is recommended by Microsoft for all modern authentication scenarios.
 
 - **PKCE is not tied to user type.** It is a security mechanism for the login flow.
-- **All users** (B2B, B2C, social/federated) authenticate using PKCE if your app is configured for it.
+- **All users** (B2B, B2C, social) can authenticate using PKCE if your app is configured for it.
 
 ---
 
@@ -805,3 +847,43 @@ The table below shows which API endpoints are available to different user types 
 - **Password change/reset endpoints** only work for users whose credentials are managed by your Azure AD/B2C tenant (not for social/federated users).
 
 If you want to support password reset for social users, you must redirect them to their provider's password reset flow.
+
+---
+
+## Using PKCE from Swagger UI: Which API Endpoints Can Be Authorized?
+
+When you use PKCE from Swagger UI (OAuth2 Authorization Code flow with PKCE), you can authorize and authenticate for all API endpoints that require a delegated user token, as long as:
+- The user is allowed to access the endpoint (based on their type and role)
+- The access token has the required Microsoft Graph scopes
+- The user signs in using the correct method for their identity type (local, B2B, federated/social)
+
+### Endpoint Support Table
+
+| Endpoint                        | Works for Local/B2B/B2C Local | Works for Social/Federated | Notes                        |
+|----------------------------------|:-----------------------------:|:--------------------------:|------------------------------|
+| `/Graph/getUserById`             |              ✅               |            ✅              |                              |
+| `/Graph/getUserByEmail`          |              ✅               |            ✅              |                              |
+| `/Graph/updateUserById`          |              ✅               |            ✅              | Own profile or admin         |
+| `/Graph/updateUserAttributesById`|              ✅               |            ✅              | Own profile or admin         |
+| `/Graph/deleteUserById`          |              ✅               |            ✅              | Own profile or admin         |
+| `/Graph/deleteUserByEmail`       |              ✅               |            ✅              | Own profile or admin         |
+| `/Graph/changePassword`          |              ✅               |            ❌              |                              |
+| `/Graph/resetPasswordById`       |              ✅               |            ❌              | Admin only                   |
+| `/Graph/resetPasswordByEmail`    |              ✅               |            ❌              | Admin only                   |
+| `/Graph/requestPasswordReset`    |              ✅               |            ❌              | Self-service                 |
+| `/Graph/completePasswordReset`   |              ✅               |            ❌              | Self-service                 |
+| `/WeatherForecast`               |              ✅               |            ✅              | Public                       |
+
+- **✅ = Supported**
+- **❌ = Not supported for social/federated users** (must reset password with their original provider)
+
+### Best Practices for Using PKCE in Swagger UI
+- Always use PKCE for secure login in Swagger UI.
+- Select all required Microsoft Graph scopes when authorizing (see Authentication & Authorization section).
+- For password endpoints, ensure the user is managed by your tenant (not a social/federated user).
+- Handle errors gracefully and guide federated users to their provider's password reset if needed.
+
+### Notes
+- PKCE is a security feature for the login flow and does not limit which endpoints you can use; endpoint access depends on user type and permissions.
+- All users can use profile and general endpoints; only tenant-managed users can use password endpoints.
+- If you get an error, check the user's type and the scopes granted to the access token.
