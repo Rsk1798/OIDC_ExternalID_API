@@ -76,7 +76,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpGet("Get_User-by-userobjID")]
         [HttpGet("getUserById")]
-       // [Authorize]
+        [Authorize]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -124,7 +124,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Update_User-by-userobjID")]
         [HttpPatch("updateUserById")]
-       // [Authorize]
+        [Authorize]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
         {
             try
@@ -143,6 +143,43 @@ namespace OIDC_ExternalID_API.Controllers
                 // Fetch the updated user object
                 //var updatedUser = await _graphServiceClient.Users[idOrEmail].GetAsync();
                 //return Ok(updatedUser);
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+
+
+
+
+        [HttpPatch("updateUserByEmail")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserByEmail([FromQuery] string email, [FromBody] Dictionary<string, object> updates)
+        {
+            try
+            {
+                // Find the user by email
+                var users = await _graphServiceClient.Users
+                    .GetAsync(requestConfig =>
+                    {
+                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+                    });
+
+                var user = users?.Value?.FirstOrDefault();
+                if (user == null)
+                    return NotFound("User not found.");
+
+                var userUpdate = new User();
+                foreach (var kvp in updates)
+                {
+                    userUpdate.AdditionalData[kvp.Key] = kvp.Value;
+                }
+
+                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+
+                return Ok($"User with email '{email}' updated successfully.");
             }
             catch (ODataError odataError)
             {
@@ -179,9 +216,51 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
+
+
+
+        [HttpPatch("updateUserAttributesByEmail")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] UserUpdateModel updates)
+        {
+            try
+            {
+                // Find the user by email
+                var users = await _graphServiceClient.Users
+                    .GetAsync(requestConfig =>
+                    {
+                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+                    });
+
+                var user = users?.Value?.FirstOrDefault();
+                if (user == null)
+                    return NotFound("User not found.");
+
+                var userUpdate = new User();
+                if (updates.DisplayName != null)
+                    userUpdate.DisplayName = updates.DisplayName;
+                if (updates.JobTitle != null)
+                    userUpdate.JobTitle = updates.JobTitle;
+                if (updates.Department != null)
+                    userUpdate.Department = updates.Department;
+                // Add other fields as needed
+
+                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+
+                return Ok($"User with email '{email}' updated with limited attributes.");
+            }
+            catch (ODataError odataError)
+            {
+                return BadRequest(odataError.Error);
+            }
+        }
+
+
+
+
         // [HttpDelete("Delete_User-by-userobjID")]
         [HttpDelete("deleteUserById")]
-       // [Authorize]
+        [Authorize]
         public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
         {
             try
@@ -493,6 +572,10 @@ namespace OIDC_ExternalID_API.Controllers
             // Placeholder: Replace with your actual logic to retrieve the access token from the user context/session
             return await Task.FromResult(_httpContextAccessor.HttpContext.User.FindFirst("access_token")?.Value);
         }
+
+        
+
+        
 
     }
 } 
