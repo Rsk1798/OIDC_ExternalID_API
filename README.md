@@ -92,10 +92,10 @@ This table shows which endpoints require a token (authorization) and which do no
 | `/Token/refresh`                 | No              | N/A              | N/A                               |
 | `/Graph/getUserById`             | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin, User (own profile) |
 | `/Graph/getUserByEmail`          | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin, User (own profile) |
-| `/Graph/updateUserById`          | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin |
-| `/Graph/updateUserAttributesById`| Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin |
-| `/Graph/deleteUserById`          | Yes             | User (delegated) | Global Admin, User Admin          |
-| `/Graph/deleteUserByEmail`       | Yes             | User (delegated) | Global Admin, User Admin          |
+| `/Graph/updateUserById`          | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
+| `/Graph/updateUserAttributesById`| Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
+| `/Graph/deleteUserById`          | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
+| `/Graph/deleteUserByEmail`       | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
 | `/Graph/changePassword`          | Yes             | User (delegated) | User (own password only)          |
 | `/Graph/resetPasswordById`       | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin |
 | `/Graph/resetPasswordByEmail`    | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin |
@@ -150,6 +150,10 @@ This API implements role-based access control based on Azure AD roles and permis
 - **Accessible endpoints:**
   - `/Graph/getUserById` - Read own profile (when using own ID)
   - `/Graph/getUserByEmail` - Read own profile (when using own email)
+  - `/Graph/updateUserById` - Update own profile (when using own ID)
+  - `/Graph/updateUserAttributesById` - Update own limited attributes (when using own ID)
+  - `/Graph/deleteUserById` - Delete own profile (when using own ID)
+  - `/Graph/deleteUserByEmail` - Delete own profile (when using own email)
   - `/Graph/changePassword` - Change own password
 
 ### **No Role Required**
@@ -167,10 +171,10 @@ This API implements role-based access control based on Azure AD roles and permis
 | `/Token/refresh`                | Delegated       | Directory.AccessAsUser.All, User.Read    | None                             |
 | `/Graph/getUserById`            | Delegated       | User.Read.All                            | Global Admin, User Admin, Helpdesk Admin, User (own profile) |
 | `/Graph/getUserByEmail`         | Delegated       | User.Read.All                            | Global Admin, User Admin, Helpdesk Admin, User (own profile) |
-| `/Graph/updateUserById`         | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin         |
-| `/Graph/updateUserAttributesById`| Delegated      | User.ReadWrite.All                       | Global Admin, User Admin         |
-| `/Graph/deleteUserById`         | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin         |
-| `/Graph/deleteUserByEmail`      | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin         |
+| `/Graph/updateUserById`         | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, User (own profile) |
+| `/Graph/updateUserAttributesById`| Delegated      | User.ReadWrite.All                       | Global Admin, User Admin, User (own profile) |
+| `/Graph/deleteUserById`         | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, User (own profile) |
+| `/Graph/deleteUserByEmail`      | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, User (own profile) |
 | `/Graph/changePassword`         | Delegated       | Directory.AccessAsUser.All               | User (own password only)         |
 | `/Graph/resetPasswordById`      | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, Helpdesk Admin |
 | `/Graph/resetPasswordByEmail`   | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, Helpdesk Admin |
