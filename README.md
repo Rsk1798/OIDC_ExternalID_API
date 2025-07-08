@@ -83,6 +83,8 @@ This table shows which endpoints require a token (authorization) and which do no
 | `/Graph/changePassword`          | Yes             | User (delegated) | User (own password only)          |
 | `/Graph/resetPasswordById`       | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin |
 | `/Graph/resetPasswordByEmail`    | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin |
+| `/Graph/requestPasswordReset`    | No              | N/A              | Anyone (self-service)             |
+| `/Graph/completePasswordReset`   | No              | N/A              | Anyone (self-service)             |
 | `/WeatherForecast`               | No              | N/A              | N/A                               |
 
 
@@ -139,11 +141,15 @@ This API implements role-based access control based on Azure AD roles and permis
   - `/Graph/deleteUserById` - Delete own profile (when using own ID)
   - `/Graph/deleteUserByEmail` - Delete own profile (when using own email)
   - `/Graph/changePassword` - Change own password
+  - `/Graph/requestPasswordReset` - Request password reset (self-service)
+  - `/Graph/completePasswordReset` - Complete password reset (self-service)
 
 ### **No Role Required**
 - **Public endpoints** that don't require authentication
 - **Accessible endpoints:**
   - `/Token/refresh` - Refresh access tokens
+  - `/Graph/requestPasswordReset` - Request password reset (self-service)
+  - `/Graph/completePasswordReset` - Complete password reset (self-service)
   - `/WeatherForecast` - Demo endpoint
 
 ---
@@ -162,6 +168,8 @@ This API implements role-based access control based on Azure AD roles and permis
 | `/Graph/changePassword`         | Delegated       | Directory.AccessAsUser.All               | User (own password only)         |
 | `/Graph/resetPasswordById`      | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, Helpdesk Admin |
 | `/Graph/resetPasswordByEmail`   | Delegated       | User.ReadWrite.All                       | Global Admin, User Admin, Helpdesk Admin |
+| `/Graph/requestPasswordReset`   | None            | (Demo endpoint, no auth required)        | None                             |
+| `/Graph/completePasswordReset`  | None            | (Demo endpoint, no auth required)        | None                             |
 | `/WeatherForecast`              | None            | (Demo endpoint, no auth required)        | None                             |
 
 ---
@@ -505,6 +513,90 @@ Content-Type: application/json
   "message": "Password reset successfully for user with email 'user@yourtenant.onmicrosoft.com'. User will be required to change password on next sign-in: true"
 }
 ```
+
+---
+
+#### POST `/Graph/requestPasswordReset`
+**Purpose:** Request a self-service password reset (Step 1: Send verification code).
+
+**Request Body:**
+```json
+{
+  "email": "user@yourtenant.onmicrosoft.com"
+}
+```
+
+**Authorization:** None required (public endpoint).
+
+**Example:**
+```
+POST /Graph/requestPasswordReset
+Content-Type: application/json
+
+{
+  "email": "user@yourtenant.onmicrosoft.com"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "If the email address exists in our system, a verification code has been sent.",
+  "verificationCode": "123456",
+  "expiresIn": "15 minutes"
+}
+```
+
+**Notes:**
+- Sends a 6-digit verification code to the user's email
+- Code expires in 15 minutes
+- Works for any user (self-service)
+- In production, remove the `verificationCode` from the response
+
+---
+
+#### POST `/Graph/completePasswordReset`
+**Purpose:** Complete self-service password reset (Step 2: Verify code and set new password).
+
+**Request Body:**
+```json
+{
+  "email": "user@yourtenant.onmicrosoft.com",
+  "newPassword": "NewPassword123!",
+  "verificationCode": "123456",
+  "forceChangePasswordNextSignIn": true,
+  "forceChangePasswordNextSignInWithMfa": false
+}
+```
+
+**Authorization:** None required (public endpoint).
+
+**Example:**
+```
+POST /Graph/completePasswordReset
+Content-Type: application/json
+
+{
+  "email": "user@yourtenant.onmicrosoft.com",
+  "newPassword": "NewPassword123!",
+  "verificationCode": "123456",
+  "forceChangePasswordNextSignIn": true,
+  "forceChangePasswordNextSignInWithMfa": false
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Password reset successfully. You can now log in with your new password.",
+  "forceChangePasswordNextSignIn": true
+}
+```
+
+**Notes:**
+- Requires the verification code sent in Step 1
+- Works for any user (self-service)
+- Automatically clears the verification code after successful reset
 
 ---
 

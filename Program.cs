@@ -42,14 +42,18 @@ builder.Services.AddSwaggerGen(c =>
         {
             AuthorizationCode = new OpenApiOAuthFlow
             {
-                //AuthorizationUrl = new Uri("https://login.microsoftonline.com/volvogroupextid.onmicrosoft.com/oauth2/v2.0/authorize"),
-                //TokenUrl = new Uri("https://login.microsoftonline.com/volvogroupextid.onmicrosoft.com/oauth2/v2.0/token"),
+                AuthorizationUrl = new Uri("https://login.microsoftonline.com/volvogroupextid.onmicrosoft.com/oauth2/v2.0/authorize"),
+                TokenUrl = new Uri("https://login.microsoftonline.com/volvogroupextid.onmicrosoft.com/oauth2/v2.0/token"),
 
-                AuthorizationUrl = new Uri("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"),
-                TokenUrl = new Uri("https://login.microsoftonline.com/common/oauth2/v2.0/token"),
+                //AuthorizationUrl = new Uri("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"),
+                //TokenUrl = new Uri("https://login.microsoftonline.com/common/oauth2/v2.0/token"),
                 Scopes = new Dictionary<string, string>
                 {
-                    { "api.read", "Read access to API, as mentioned in microsoft document" }
+                    { "User.Read.All", "Read all users' full profiles" },
+                    { "User.ReadWrite.All", "Read and write all users' full profiles" },
+                    { "Directory.AccessAsUser.All", "Access directory as the signed-in user" },
+                    { "offline_access", "Maintain access to data you have given it access to" },
+                    { "openid", "Sign users in" }
                 }
             }
         }
@@ -65,7 +69,7 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "oauth2"
                 }
             },
-            new[] { "api.read" }
+            new[] { "User.Read.All", "User.ReadWrite.All", "Directory.AccessAsUser.All", "offline_access", "openid" }
         }
     });
 
@@ -105,7 +109,7 @@ var app = builder.Build();
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
         c.OAuthClientId("your-client-id"); // TODO: Replace with your Azure AD App Registration client ID
-        c.OAuthScopes("api.read");
+        c.OAuthScopes("User.Read.All", "User.ReadWrite.All", "Directory.AccessAsUser.All", "offline_access", "openid");
         c.OAuthUsePkce(); // Required for Authorization Code flow with PKCE
         c.OAuth2RedirectUrl("https://localhost:7110/swagger/oauth2-redirect.html"); // TODO: Ensure this matches your Azure AD app registration
     });
