@@ -77,7 +77,9 @@ This table shows which endpoints require a token (authorization) and which do no
 | `/Graph/getUserById`             | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin, User (own profile) |
 | `/Graph/getUserByEmail`          | Yes             | User (delegated) | Global Admin, User Admin, Helpdesk Admin, User (own profile) |
 | `/Graph/updateUserById`          | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
+| `/Graph/updateUserByEmail`       | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
 | `/Graph/updateUserAttributesById`| Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
+| `/Graph/updateUserAttributesByEmail`| Yes          | User (delegated) | Global Admin, User Admin, User (own profile) |
 | `/Graph/deleteUserById`          | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
 | `/Graph/deleteUserByEmail`       | Yes             | User (delegated) | Global Admin, User Admin, User (own profile) |
 | `/Graph/changePassword`          | Yes             | User (delegated) | User (own password only)          |
@@ -366,6 +368,44 @@ Content-Type: application/json
 
 ---
 
+#### PATCH `/Graph/updateUserByEmail`
+**Purpose:** Update user attributes by email address.
+
+**Query Parameter:**
+- `email` (string): User email address.
+
+**Request Body:** Any valid user attributes as key-value pairs.
+```json
+{
+  "jobTitle": "Senior Software Engineer",
+  "department": "Engineering",
+  "officeLocation": "Building A, Floor 3"
+}
+```
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+PATCH /Graph/updateUserByEmail?email=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "jobTitle": "Senior Software Engineer",
+  "department": "Engineering"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "User with email 'user@yourtenant.onmicrosoft.com' updated successfully."
+}
+```
+
+---
+
 #### PATCH `/Graph/updateUserAttributesById`
 **Purpose:** Update limited user attributes (displayName, jobTitle, department).
 
@@ -400,6 +440,45 @@ Content-Type: application/json
 ```json
 {
   "message": "User Updated with Limited Attributes"
+}
+```
+
+---
+
+#### PATCH `/Graph/updateUserAttributesByEmail`
+**Purpose:** Update limited user attributes (displayName, jobTitle, department) by email address.
+
+**Query Parameter:**
+- `email` (string): User email address.
+
+**Request Body:**
+```json
+{
+  "displayName": "John Smith",
+  "jobTitle": "Manager",
+  "department": "IT"
+}
+```
+
+**Authorization:** Requires Bearer token in Authorization header.
+
+**Example:**
+```
+PATCH /Graph/updateUserAttributesByEmail?email=user@yourtenant.onmicrosoft.com
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi...
+Content-Type: application/json
+
+{
+  "displayName": "John Smith",
+  "jobTitle": "Manager",
+  "department": "IT"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "User with email 'user@yourtenant.onmicrosoft.com' updated with limited attributes."
 }
 ```
 
@@ -825,7 +904,9 @@ The table below shows which API endpoints are available to different user types 
 | `/Graph/getUserById`             |    ✅     |    ✅     |        ✅        |
 | `/Graph/getUserByEmail`          |    ✅     |    ✅     |        ✅        |
 | `/Graph/updateUserById`          |    ✅     |    ✅     |        ✅        |
+| `/Graph/updateUserByEmail`       |    ✅     |    ✅     |        ✅        |
 | `/Graph/updateUserAttributesById`|    ✅     |    ✅     |        ✅        |
+| `/Graph/updateUserAttributesByEmail`|    ✅     |    ✅     |        ✅        |
 | `/Graph/deleteUserById`          |    ✅     |    ✅     |        ✅        |
 | `/Graph/deleteUserByEmail`       |    ✅     |    ✅     |        ✅        |
 | `/Graph/changePassword`          |    ✅     |    ✅     |        ❌*       |
@@ -864,7 +945,9 @@ When you use PKCE from Swagger UI (OAuth2 Authorization Code flow with PKCE), yo
 | `/Graph/getUserById`             |              ✅               |            ✅              |                              |
 | `/Graph/getUserByEmail`          |              ✅               |            ✅              |                              |
 | `/Graph/updateUserById`          |              ✅               |            ✅              | Own profile or admin         |
+| `/Graph/updateUserByEmail`       |              ✅               |            ✅              | Own profile or admin         |
 | `/Graph/updateUserAttributesById`|              ✅               |            ✅              | Own profile or admin         |
+| `/Graph/updateUserAttributesByEmail`|              ✅               |            ✅              | Own profile or admin         |
 | `/Graph/deleteUserById`          |              ✅               |            ✅              | Own profile or admin         |
 | `/Graph/deleteUserByEmail`       |              ✅               |            ✅              | Own profile or admin         |
 | `/Graph/changePassword`          |              ✅               |            ❌              |                              |
