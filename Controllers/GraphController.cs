@@ -17,7 +17,7 @@ namespace OIDC_ExternalID_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    // [Authorize]
+    [Authorize]
     public class GraphController : ControllerBase
     {
 
