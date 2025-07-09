@@ -660,8 +660,8 @@ Content-Type: application/json
 ```
 
 **Response:**
-  ```json
-  {
+```json
+{
   "message": "If the email address exists in our system, a verification code has been sent.",
   "verificationCode": "123456",
   "expiresIn": "15 minutes"
