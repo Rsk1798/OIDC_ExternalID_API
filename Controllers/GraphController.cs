@@ -17,7 +17,7 @@ namespace OIDC_ExternalID_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize]
+    // [Authorize]
     public class GraphController : ControllerBase
     {
 
@@ -76,7 +76,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpGet("Get_User-by-userobjID")]
         [HttpGet("getUserById")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -96,7 +96,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpGet("Get_User/by-email")]
         [HttpGet("getUserByEmail")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             try
@@ -124,7 +124,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("Update_User-by-userobjID")]
         [HttpPatch("updateUserById")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
         {
             try
@@ -155,7 +155,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
         [HttpPatch("updateUserByEmail")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> UpdateUserByEmail([FromQuery] string email, [FromBody] Dictionary<string, object> updates)
         {
             try
@@ -192,7 +192,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpPatch("UpdateUserLimitedAttributes-userobjID")]
         [HttpPatch("updateUserAttributesById")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
         {
             try
@@ -220,7 +220,7 @@ namespace OIDC_ExternalID_API.Controllers
 
 
         [HttpPatch("updateUserAttributesByEmail")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] UserUpdateModel updates)
         {
             try
@@ -260,7 +260,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpDelete("Delete_User-by-userobjID")]
         [HttpDelete("deleteUserById")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
         {
             try
@@ -277,7 +277,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         // [HttpDelete("Delete_User-by-email")]
         [HttpDelete("deleteUserByEmail")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> DeleteUserByEmail([FromQuery] string email)
         {
             try
@@ -328,7 +328,7 @@ namespace OIDC_ExternalID_API.Controllers
         }
 
         [HttpPatch("resetPasswordById")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] ResetPasswordModel model)
         {
             try
@@ -355,7 +355,7 @@ namespace OIDC_ExternalID_API.Controllers
         }
 
         [HttpPatch("resetPasswordByEmail")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> ResetPasswordByEmail([FromQuery] string email, [FromBody] ResetPasswordModel model)
         {
             try

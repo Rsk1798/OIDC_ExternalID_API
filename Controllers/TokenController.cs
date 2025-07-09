@@ -64,28 +64,28 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
-        [HttpPost("store-code-verifier")]
-        [AllowAnonymous]
-        public IActionResult StoreCodeVerifier([FromBody] string codeVerifier)
-        {
-            if (string.IsNullOrEmpty(codeVerifier))
-            {
-                return BadRequest("code_verifier is required");
-            }
-            HttpContext.Session.SetString("pkce_code_verifier", codeVerifier);
-            return Ok();
-        }
+        // [HttpPost("store-code-verifier")]
+        // [AllowAnonymous]
+        // public IActionResult StoreCodeVerifier([FromBody] string codeVerifier)
+        // {
+        //     if (string.IsNullOrEmpty(codeVerifier))
+        //     {
+        //         return BadRequest("code_verifier is required");
+        //     }
+        //     HttpContext.Session.SetString("pkce_code_verifier", codeVerifier);
+        //     return Ok();
+        // }
 
         private async Task<object> ExchangeCodeForToken(string authorizationCode)
         {
             var tenantId = _config["AzureAd:TenantId"];
             var clientId = _config["AzureAd:ClientId"];
             var redirectUri = $"{Request.Scheme}://{Request.Host}/Token/callback";
-            var codeVerifier = HttpContext.Session.GetString("pkce_code_verifier");
-            if (string.IsNullOrEmpty(codeVerifier))
-            {
-                throw new Exception("PKCE code_verifier is missing from session. Please initiate the flow correctly.");
-            }
+            // var codeVerifier = HttpContext.Session.GetString("pkce_code_verifier");
+            // if (string.IsNullOrEmpty(codeVerifier))
+            // {
+            //     throw new Exception("PKCE code_verifier is missing from session. Please initiate the flow correctly.");
+            // }
 
             using var client = new HttpClient();
             var parameters = new Dictionary<string, string>
@@ -94,8 +94,8 @@ namespace OIDC_ExternalID_API.Controllers
                 {"scope", "Directory.AccessAsUser.All User.Read"},
                 {"code", authorizationCode},
                 {"redirect_uri", redirectUri},
-                {"grant_type", "authorization_code"},
-                {"code_verifier", codeVerifier}
+                {"grant_type", "authorization_code"}
+                // ,{"code_verifier", codeVerifier}
             };
 
             var content = new FormUrlEncodedContent(parameters);
