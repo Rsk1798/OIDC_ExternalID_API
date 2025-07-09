@@ -50,8 +50,8 @@ flowchart TD
 | `/Graph/changePassword`          | POST   | No            | Change own password                         |
 | `/Graph/resetPasswordById`       | PATCH  | No            | Reset user password by ID/email             |
 | `/Graph/resetPasswordByEmail`    | PATCH  | No            | Reset user password by email                |
-| `/Graph/requestPasswordReset`    | POST   | No            | Request password reset (self-service)       |
-| `/Graph/completePasswordReset`   | POST   | No            | Complete password reset (self-service)      |
+| `/Graph/requestPasswordReset(SSPR-likeInAzure)`    | POST   | No            | Request password reset (self-service)       |
+| `/Graph/completePasswordReset(SSPR-likeInAzure)`   | POST   | No            | Complete password reset (self-service)      |
 | `/WeatherForecast`               | GET    | No            | Sample endpoint                             |
 
 ---
@@ -71,8 +71,8 @@ flowchart TD
 | `/Graph/changePassword`                  | `Directory.AccessAsUser.All`         | Any signed-in user (self-service)      | Bearer token (delegated)               |
 | `/Graph/resetPasswordById`               | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
 | `/Graph/resetPasswordByEmail`            | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
-| `/Graph/requestPasswordReset`            | None (self-service, email only)      | Anyone (self-service)                  | None                                   |
-| `/Graph/completePasswordReset`           | `User.ReadWrite.All`                 | Anyone with valid verification code     | None (self-service, but token if secured)|
+| `/Graph/requestPasswordReset(SSPR-likeInAzure)`            | None (self-service, email only)      | Anyone (self-service)                  | None                                   |
+| `/Graph/completePasswordReset(SSPR-likeInAzure)`           | `User.ReadWrite.All`                 | Anyone with valid verification code     | None (self-service, but token if secured)|
 | `/WeatherForecast`                       | None                                 | Anyone                                 | None                                   |
 
 ### Legend
@@ -282,7 +282,7 @@ This section provides detailed documentation for all available endpoints in the 
   "Password reset successfully for user with email 'user@yourtenant.onmicrosoft.com'. User will be required to change password on next sign-in: true"
   ```
 
-### `/Graph/requestPasswordReset`
+### `/Graph/requestPasswordReset (SSPR-likeInAzure)`
 - **Purpose:** Request a password reset (self-service, sends verification code to email).
 - **Method:** POST
 - **Parameters:**
@@ -302,7 +302,7 @@ This section provides detailed documentation for all available endpoints in the 
   }
   ```
 
-### `/Graph/completePasswordReset`
+### `/Graph/completePasswordReset (SSPR-likeInAzure)`
 - **Purpose:** Complete a password reset using the verification code (self-service).
 - **Method:** POST
 - **Parameters:**
