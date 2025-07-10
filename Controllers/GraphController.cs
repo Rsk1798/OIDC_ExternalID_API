@@ -419,7 +419,7 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
-        [HttpPost("requestPasswordReset")]
+        [HttpPost("requestPasswordReset(SSPR-likeInAzure")]
         [AllowAnonymous]
         public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetModel model)
         {
@@ -464,7 +464,7 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
-        [HttpPost("completePasswordReset")]
+        [HttpPost("completePasswordReset(SSPR-likeInAzure)")]
         [AllowAnonymous]
         public async Task<IActionResult> CompletePasswordReset([FromBody] SelfServicePasswordResetModel model)
         {

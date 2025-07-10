@@ -36,36 +36,19 @@ flowchart TD
 
 | Endpoint                        | Method | Auth Required | Description                                 |
 |----------------------------------|--------|---------------|---------------------------------------------|
-| `/Token`                         | POST   | No            | Generate JWT Bearer token                   |
-| `/Token/validate`                | POST   | No            | Validate JWT Bearer token                   |
-| `/Graph/me`                      | GET    | Yes           | Get current user info from token            |
-| `/Graph/getUserById`             | GET    | Yes           | Get user by object ID or email              |
-| `/Graph/getUserByEmail`          | GET    | Yes           | Get user by email                           |
-| `/Graph/updateUserById`          | PATCH  | Yes           | Update user attributes by ID/email          |
-| `/Graph/updateUserByEmail`       | PATCH  | Yes           | Update user attributes by email             |
-| `/Graph/updateUserAttributesById`| PATCH  | Yes           | Update limited user attributes by ID/email  |
-| `/Graph/updateUserAttributesByEmail`| PATCH| Yes           | Update limited user attributes by email     |
-| `/Graph/deleteUserById`          | DELETE | Yes           | Delete user by object ID or email           |
-| `/Graph/deleteUserByEmail`       | DELETE | Yes           | Delete user by email                        |
-| `/Graph/changePassword`          | POST   | Yes           | Change own password                         |
-| `/Graph/resetPasswordById`       | PATCH  | Yes           | Reset user password by ID/email             |
-| `/Graph/resetPasswordByEmail`    | PATCH  | Yes           | Reset user password by email                |
+| `/Graph/getUserById`             | GET    | No            | Get user by object ID or email              |
+| `/Graph/getUserByEmail`          | GET    | No            | Get user by email                           |
+| `/Graph/updateUserById`          | PATCH  | No            | Update user attributes by ID/email          |
+| `/Graph/updateUserByEmail`       | PATCH  | No            | Update user attributes by email             |
+| `/Graph/updateUserAttributesById`| PATCH  | No            | Update limited user attributes by ID/email  |
+| `/Graph/updateUserAttributesByEmail`| PATCH| No            | Update limited user attributes by email     |
+| `/Graph/deleteUserById`          | DELETE | No            | Delete user by object ID or email           |
+| `/Graph/deleteUserByEmail`       | DELETE | No            | Delete user by email                        |
+| `/Graph/changePassword`          | POST   | No            | Change own password                         |
+| `/Graph/resetPasswordById`       | PATCH  | No            | Reset user password by ID/email             |
+| `/Graph/resetPasswordByEmail`    | PATCH  | No            | Reset user password by email                |
 | `/Graph/requestPasswordReset`    | POST   | No            | Request password reset (self-service)       |
 | `/Graph/completePasswordReset`   | POST   | No            | Complete password reset (self-service)      |
-| `/Graph/invite`                  | POST   | Yes           | Invite user to organization                 |
-| `/CustomGraph/me`                | GET    | Yes           | Get current user info from JWT token        |
-| `/CustomGraph/getUserById`       | GET    | Yes           | Get user by ID/email (direct Graph API)     |
-| `/CustomGraph/getUserByEmail`    | GET    | Yes           | Get user by email (direct Graph API)        |
-| `/CustomGraph/updateUserById`    | PATCH  | Yes           | Update user by ID (direct Graph API)        |
-| `/CustomGraph/updateUserByEmail` | PATCH  | Yes           | Update user by email (direct Graph API)     |
-| `/CustomGraph/updateUserAttributesById`| PATCH| Yes           | Update user attributes by ID (direct Graph API)|
-| `/CustomGraph/updateUserAttributesByEmail`| PATCH| Yes       | Update user attributes by email (direct Graph API)|
-| `/CustomGraph/deleteUserById`    | DELETE | Yes           | Delete user by ID (direct Graph API)        |
-| `/CustomGraph/deleteUserByEmail` | DELETE | Yes           | Delete user by email (direct Graph API)     |
-| `/CustomGraph/changePassword`    | POST   | Yes           | Change password (direct Graph API)          |
-| `/CustomGraph/resetPasswordById` | PATCH  | Yes           | Reset password by ID (direct Graph API)     |
-| `/CustomGraph/resetPasswordByEmail`| PATCH| Yes           | Reset password by email (direct Graph API)  |
-| `/CustomGraph/getAllUsers`       | GET    | Yes           | Get all users (direct Graph API)            |
 | `/WeatherForecast`               | GET    | No            | Sample endpoint                             |
 
 ---
@@ -179,20 +162,6 @@ curl -X GET "https://localhost:7110/CustomGraph/getUserById?idOrEmail=user@examp
 | `/Graph/resetPasswordByEmail`            | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
 | `/Graph/requestPasswordReset`            | None (self-service, email only)      | Anyone (self-service)                  | None                                   |
 | `/Graph/completePasswordReset`           | `User.ReadWrite.All`                 | Anyone with valid verification code     | None (self-service, but token if secured)|
-| `/Graph/invite`                          | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
-| `/CustomGraph/me`                        | None                                 | Any authenticated user                 | JWT Bearer token                       |
-| `/CustomGraph/getUserById`               | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/getUserByEmail`            | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserById`            | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserByEmail`         | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserAttributesById`  | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserAttributesByEmail`| `User.ReadWrite.All`                | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/deleteUserById`            | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/deleteUserByEmail`         | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/changePassword`            | `Directory.AccessAsUser.All`         | Any signed-in user (self-service)      | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/resetPasswordById`         | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/resetPasswordByEmail`      | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/getAllUsers`               | `User.Read.All`                      | Admins, User Admins, Helpdesk          | JWT Bearer token (exchanged for Graph) |
 | `/WeatherForecast`                       | None                                 | Anyone                                 | None                                   |
 
 ### Legend
@@ -402,7 +371,7 @@ This section provides detailed documentation for all available endpoints in the 
   "Password reset successfully for user with email 'user@yourtenant.onmicrosoft.com'. User will be required to change password on next sign-in: true"
   ```
 
-### `/Graph/requestPasswordReset`
+### `/Graph/requestPasswordReset (SSPR-likeInAzure)`
 - **Purpose:** Request a password reset (self-service, sends verification code to email).
 - **Method:** POST
 - **Parameters:**
@@ -422,7 +391,7 @@ This section provides detailed documentation for all available endpoints in the 
   }
   ```
 
-### `/Graph/completePasswordReset`
+### `/Graph/completePasswordReset (SSPR-likeInAzure)`
 - **Purpose:** Complete a password reset using the verification code (self-service).
 - **Method:** POST
 - **Parameters:**
