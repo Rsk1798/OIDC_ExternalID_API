@@ -1,6 +1,29 @@
 # OIDC_ExternalID_API
 
-This API enables secure user management in Azure AD via Microsoft Graph, using modern OAuth2 authentication flows. It is built with C# and .NET.
+This API enables secure user management in Azure AD via Microsoft Graph, using JWT Bearer token authentication. It is built with C# and .NET.
+
+## 🔐 Authentication System
+
+The API now uses **JWT Bearer token authentication** for secure access to all Graph endpoints:
+
+### Token Generation
+- **Endpoint**: `POST /Token`
+- **Grant Types**: `client_credentials`, `password`, `refresh_token`
+- **Token Type**: JWT Bearer token
+- **Expiration**: 1 hour (configurable)
+
+### Token Validation
+- **Endpoint**: `POST /Token/validate`
+- **Purpose**: Validate existing tokens and get user information
+
+### Swagger UI Integration
+- All Graph endpoints require Bearer token authentication
+- Use the "Authorize" button in Swagger UI to set your Bearer token
+- Format: `Bearer <your-jwt-token>`
+
+### Two Graph Controller Options
+1. **GraphController** - Uses GraphServiceClient with Azure AD credentials
+2. **CustomGraphController** - Uses your JWT token directly with Microsoft Graph API
 
 ---
 
@@ -20,11 +43,31 @@ This API enables secure user management in Azure AD via Microsoft Graph, using m
 
 ## Quick Start
 
-1. Register your API in Azure AD and set up permissions as above.
-2. Run the API locally.
-3. Open Swagger UI at `https://localhost:demo/swagger`.
-4. Click **Authorize** and log in with your Azure AD, B2B, or federated social account.
-5. Use the `/graph/changePassword` endpoint to change your password.
+1. **Generate a Token**:
+   ```
+   POST https://localhost:7110/Token
+   Content-Type: application/x-www-form-urlencoded
+   
+   client_id=your-client-id&client_secret=your-secret&scope=api://default&grant_type=client_credentials
+   ```
+
+2. **Copy the Access Token** from the response
+
+3. **Open Swagger UI** at `https://localhost:7110/swagger`
+
+4. **Authorize in Swagger UI**:
+   - Click the **"Authorize"** button (🔒)
+   - Enter: `Bearer <your-access-token>`
+   - Click "Authorize"
+
+5. **Test Graph Endpoints**:
+   - All `/Graph/*` endpoints now require Bearer token authentication
+   - Try `GET /Graph/getUserById?idOrEmail=user@example.com`
+   - Try `GET /Graph/me` to see your token information
+   - Try `GET /CustomGraph/getUserById?idOrEmail=user@example.com` (uses your JWT token directly)
+   - Try `PATCH /CustomGraph/updateUserByEmail?email=user@example.com` (update user by email)
+   - Try `POST /CustomGraph/changePassword` (change password)
+   - Try `PATCH /CustomGraph/resetPasswordByEmail?email=user@example.com` (reset password by email)
 
 ---
 

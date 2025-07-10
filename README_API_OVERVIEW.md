@@ -1,6 +1,6 @@
-# OIDC_ExternalID_API (Open Testing Mode)
+# OIDC_ExternalID_API (JWT Bearer Token Authentication)
 
-This API enables user management in Azure AD via Microsoft Graph. **Authorization, PKCE, and OAuth2 security are currently disabled for open testing.**
+This API enables user management in Azure AD via Microsoft Graph. **JWT Bearer token authentication is now enabled for all Graph endpoints.**
 
 ---
 
@@ -12,47 +12,150 @@ flowchart TD
   end
   subgraph "OIDC_ExternalID_API"
     B1["Swagger UI / API Client"]
-    B2["TokenController"]
-    B3["GraphController"]
+    B2["TokenController (JWT)"]
+    B3["GraphController (Protected)"]
     B4["User Management Logic"]
-  end
-  subgraph "Identity Providers"
-    C1["Azure AD (Workforce)"]
-    C2["Google, Facebook, etc. (CIAM)"]
-    C3["Local Accounts DB"]
   end
   subgraph "Microsoft Graph API"
     D1["Graph API"]
   end
 
-  A1-->|"Open Swagger UI / API Call"|B1
-  B1-->|"API Call (no auth required)"|B3
-  B3-->|"User/Password Mgmt"|B4
-  B4-->|"Graph API Call"|D1
-  D1-->|"User/Password Ops"|B4
-  B4-->|"Response"|B3
-  B3-->|"API Response"|A1
+  A1-->|"1. Generate Token"|B2
+  B2-->|"2. JWT Bearer Token"|A1
+  A1-->|"3. API Call with Bearer Token"|B1
+  B1-->|"4. Validate Token"|B3
+  B3-->|"5. User/Password Mgmt"|B4
+  B4-->|"6. Graph API Call"|D1
+  D1-->|"7. User/Password Ops"|B4
+  B4-->|"8. Response"|B3
+  B3-->|"9. API Response"|A1
 
 ---
 
-## API Endpoint Overview (Open Mode)
+## API Endpoint Overview (JWT Bearer Token Authentication)
 
 | Endpoint                        | Method | Auth Required | Description                                 |
 |----------------------------------|--------|---------------|---------------------------------------------|
-| `/Graph/getUserById`             | GET    | No            | Get user by object ID or email              |
-| `/Graph/getUserByEmail`          | GET    | No            | Get user by email                           |
-| `/Graph/updateUserById`          | PATCH  | No            | Update user attributes by ID/email          |
-| `/Graph/updateUserByEmail`       | PATCH  | No            | Update user attributes by email             |
-| `/Graph/updateUserAttributesById`| PATCH  | No            | Update limited user attributes by ID/email  |
-| `/Graph/updateUserAttributesByEmail`| PATCH| No            | Update limited user attributes by email     |
-| `/Graph/deleteUserById`          | DELETE | No            | Delete user by object ID or email           |
-| `/Graph/deleteUserByEmail`       | DELETE | No            | Delete user by email                        |
-| `/Graph/changePassword`          | POST   | No            | Change own password                         |
-| `/Graph/resetPasswordById`       | PATCH  | No            | Reset user password by ID/email             |
-| `/Graph/resetPasswordByEmail`    | PATCH  | No            | Reset user password by email                |
+| `/Token`                         | POST   | No            | Generate JWT Bearer token                   |
+| `/Token/validate`                | POST   | No            | Validate JWT Bearer token                   |
+| `/Graph/me`                      | GET    | Yes           | Get current user info from token            |
+| `/Graph/getUserById`             | GET    | Yes           | Get user by object ID or email              |
+| `/Graph/getUserByEmail`          | GET    | Yes           | Get user by email                           |
+| `/Graph/updateUserById`          | PATCH  | Yes           | Update user attributes by ID/email          |
+| `/Graph/updateUserByEmail`       | PATCH  | Yes           | Update user attributes by email             |
+| `/Graph/updateUserAttributesById`| PATCH  | Yes           | Update limited user attributes by ID/email  |
+| `/Graph/updateUserAttributesByEmail`| PATCH| Yes           | Update limited user attributes by email     |
+| `/Graph/deleteUserById`          | DELETE | Yes           | Delete user by object ID or email           |
+| `/Graph/deleteUserByEmail`       | DELETE | Yes           | Delete user by email                        |
+| `/Graph/changePassword`          | POST   | Yes           | Change own password                         |
+| `/Graph/resetPasswordById`       | PATCH  | Yes           | Reset user password by ID/email             |
+| `/Graph/resetPasswordByEmail`    | PATCH  | Yes           | Reset user password by email                |
 | `/Graph/requestPasswordReset`    | POST   | No            | Request password reset (self-service)       |
 | `/Graph/completePasswordReset`   | POST   | No            | Complete password reset (self-service)      |
+| `/Graph/invite`                  | POST   | Yes           | Invite user to organization                 |
+| `/CustomGraph/me`                | GET    | Yes           | Get current user info from JWT token        |
+| `/CustomGraph/getUserById`       | GET    | Yes           | Get user by ID/email (direct Graph API)     |
+| `/CustomGraph/getUserByEmail`    | GET    | Yes           | Get user by email (direct Graph API)        |
+| `/CustomGraph/updateUserById`    | PATCH  | Yes           | Update user by ID (direct Graph API)        |
+| `/CustomGraph/updateUserByEmail` | PATCH  | Yes           | Update user by email (direct Graph API)     |
+| `/CustomGraph/updateUserAttributesById`| PATCH| Yes           | Update user attributes by ID (direct Graph API)|
+| `/CustomGraph/updateUserAttributesByEmail`| PATCH| Yes       | Update user attributes by email (direct Graph API)|
+| `/CustomGraph/deleteUserById`    | DELETE | Yes           | Delete user by ID (direct Graph API)        |
+| `/CustomGraph/deleteUserByEmail` | DELETE | Yes           | Delete user by email (direct Graph API)     |
+| `/CustomGraph/changePassword`    | POST   | Yes           | Change password (direct Graph API)          |
+| `/CustomGraph/resetPasswordById` | PATCH  | Yes           | Reset password by ID (direct Graph API)     |
+| `/CustomGraph/resetPasswordByEmail`| PATCH| Yes           | Reset password by email (direct Graph API)  |
+| `/CustomGraph/getAllUsers`       | GET    | Yes           | Get all users (direct Graph API)            |
 | `/WeatherForecast`               | GET    | No            | Sample endpoint                             |
+
+---
+
+## 🔐 JWT Bearer Token Authentication
+
+### Token Generation
+**Endpoint**: `POST /Token`
+
+**Supported Grant Types**:
+- `client_credentials` - Service-to-service authentication
+- `password` - Username/password authentication  
+- `refresh_token` - Refresh expired tokens
+
+**Request Format** (Form Data):
+```
+client_id: your-client-id
+client_secret: your-client-secret
+scope: your-scope
+grant_type: client_credentials
+```
+
+**Response Format**:
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "api://default"
+}
+```
+
+### Token Validation
+**Endpoint**: `POST /Token/validate`
+
+**Request Format**:
+```json
+{
+  "access_token": "your-jwt-token-here"
+}
+```
+
+**Response Format**:
+```json
+{
+  "valid": true,
+  "sub": "user-id",
+  "scope": "api://default",
+  "exp": "2025-07-10T05:16:15Z",
+  "iat": "2025-07-10T04:16:15Z",
+  "error": null
+}
+```
+
+### Using Tokens in Swagger UI
+1. **Generate a token** using `POST /Token`
+2. **Copy the access_token** from the response
+3. **Click "Authorize"** in Swagger UI
+4. **Enter**: `Bearer <your-access-token>`
+5. **Click "Authorize"** to apply the token
+6. **Test protected endpoints** - token will be automatically included
+
+### Two Graph Controller Options
+
+#### GraphController (Original)
+- Uses **GraphServiceClient** with Azure AD credentials
+- Azure AD handles Microsoft Graph authentication
+- Your JWT token only protects API access
+
+#### CustomGraphController (New)
+- Uses **your JWT token directly** with Microsoft Graph API
+- Exchanges your JWT for Microsoft Graph token
+- Full control over authentication flow
+- Direct HTTP calls to Microsoft Graph API
+
+### Example Usage
+```bash
+# 1. Generate token
+curl -X POST "https://localhost:7110/Token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=test&client_secret=test&scope=api://default&grant_type=client_credentials"
+
+# 2. Use token with GraphController (uses GraphServiceClient)
+curl -X GET "https://localhost:7110/Graph/getUserById?idOrEmail=user@example.com" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# 3. Use token with CustomGraphController (uses your JWT directly)
+curl -X GET "https://localhost:7110/CustomGraph/getUserById?idOrEmail=user@example.com" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
 
 ---
 
@@ -60,6 +163,9 @@ flowchart TD
 
 | Endpoint                                 | Required Graph Permission(s)         | Who Can Use (User Type)                | Token Usage (in secure mode)           |
 |-------------------------------------------|--------------------------------------|----------------------------------------|----------------------------------------|
+| `/Token`                                 | None                                 | Anyone (token generation)              | None                                   |
+| `/Token/validate`                        | None                                 | Anyone (token validation)              | None                                   |
+| `/Graph/me`                              | None                                 | Any authenticated user                 | JWT Bearer token                       |
 | `/Graph/getUserById`                     | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | Bearer token (delegated/admin)         |
 | `/Graph/getUserByEmail`                  | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | Bearer token (delegated/admin)         |
 | `/Graph/updateUserById`                  | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
@@ -73,6 +179,20 @@ flowchart TD
 | `/Graph/resetPasswordByEmail`            | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
 | `/Graph/requestPasswordReset`            | None (self-service, email only)      | Anyone (self-service)                  | None                                   |
 | `/Graph/completePasswordReset`           | `User.ReadWrite.All`                 | Anyone with valid verification code     | None (self-service, but token if secured)|
+| `/Graph/invite`                          | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
+| `/CustomGraph/me`                        | None                                 | Any authenticated user                 | JWT Bearer token                       |
+| `/CustomGraph/getUserById`               | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getUserByEmail`            | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserById`            | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserByEmail`         | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserAttributesById`  | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserAttributesByEmail`| `User.ReadWrite.All`                | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/deleteUserById`            | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/deleteUserByEmail`         | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/changePassword`            | `Directory.AccessAsUser.All`         | Any signed-in user (self-service)      | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/resetPasswordById`         | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/resetPasswordByEmail`      | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getAllUsers`               | `User.Read.All`                      | Admins, User Admins, Helpdesk          | JWT Bearer token (exchanged for Graph) |
 | `/WeatherForecast`                       | None                                 | Anyone                                 | None                                   |
 
 ### Legend
@@ -340,6 +460,194 @@ This section provides detailed documentation for all available endpoints in the 
     ...
   ]
   ```
+
+---
+
+## CustomGraphController Endpoints (Direct Graph API Access)
+
+### `/CustomGraph/me`
+- **Purpose:** Get current user information from JWT token.
+- **Method:** GET
+- **Parameters:** None
+- **Example:**
+  ```bash
+  curl -X GET "https://your-api.azurewebsites.net/CustomGraph/me" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:**
+  ```json
+  {
+    "userId": "user-id",
+    "username": "username",
+    "scope": "api://default",
+    "isAuthenticated": true,
+    "claims": [...]
+  }
+  ```
+
+### `/CustomGraph/getUserById`
+- **Purpose:** Get user by object ID or email using direct Microsoft Graph API calls.
+- **Method:** GET
+- **Parameters:**
+  - `idOrEmail` (query): User object ID or email address.
+- **Example:**
+  ```bash
+  curl -X GET "https://your-api.azurewebsites.net/CustomGraph/getUserById?idOrEmail=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:** Microsoft Graph user object.
+
+### `/CustomGraph/getUserByEmail`
+- **Purpose:** Get user by email using direct Microsoft Graph API calls.
+- **Method:** GET
+- **Parameters:**
+  - `email` (query): User email address.
+- **Example:**
+  ```bash
+  curl -X GET "https://your-api.azurewebsites.net/CustomGraph/getUserByEmail?email=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:** Microsoft Graph user object.
+
+### `/CustomGraph/updateUserById`
+- **Purpose:** Update user by object ID or email using direct Microsoft Graph API calls.
+- **Method:** PATCH
+- **Parameters:**
+  - `idOrEmail` (query): User object ID or email address.
+  - Request body: JSON object with fields to update.
+- **Example:**
+  ```bash
+  curl -X PATCH "https://your-api.azurewebsites.net/CustomGraph/updateUserById?idOrEmail=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"displayName": "John Smith", "jobTitle": "Manager"}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/updateUserByEmail`
+- **Purpose:** Update user by email using direct Microsoft Graph API calls.
+- **Method:** PATCH
+- **Parameters:**
+  - `email` (query): User email address.
+  - Request body: JSON object with fields to update.
+- **Example:**
+  ```bash
+  curl -X PATCH "https://your-api.azurewebsites.net/CustomGraph/updateUserByEmail?email=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"displayName": "John Smith", "jobTitle": "Manager"}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/updateUserAttributesById`
+- **Purpose:** Update user attributes by object ID or email using direct Microsoft Graph API calls.
+- **Method:** PATCH
+- **Parameters:**
+  - `idOrEmail` (query): User object ID or email address.
+  - Request body: JSON object with allowed fields.
+- **Example:**
+  ```bash
+  curl -X PATCH "https://your-api.azurewebsites.net/CustomGraph/updateUserAttributesById?idOrEmail=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"displayName": "New Name"}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/updateUserAttributesByEmail`
+- **Purpose:** Update user attributes by email using direct Microsoft Graph API calls.
+- **Method:** PATCH
+- **Parameters:**
+  - `email` (query): User email address.
+  - Request body: JSON object with allowed fields.
+- **Example:**
+  ```bash
+  curl -X PATCH "https://your-api.azurewebsites.net/CustomGraph/updateUserAttributesByEmail?email=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"department": "IT"}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/deleteUserById`
+- **Purpose:** Delete user by object ID or email using direct Microsoft Graph API calls.
+- **Method:** DELETE
+- **Parameters:**
+  - `idOrEmail` (query): User object ID or email address.
+- **Example:**
+  ```bash
+  curl -X DELETE "https://your-api.azurewebsites.net/CustomGraph/deleteUserById?idOrEmail=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/deleteUserByEmail`
+- **Purpose:** Delete user by email using direct Microsoft Graph API calls.
+- **Method:** DELETE
+- **Parameters:**
+  - `email` (query): User email address.
+- **Example:**
+  ```bash
+  curl -X DELETE "https://your-api.azurewebsites.net/CustomGraph/deleteUserByEmail?email=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/changePassword`
+- **Purpose:** Change current user's password using direct Microsoft Graph API calls.
+- **Method:** POST
+- **Parameters:**
+  - Request body: JSON object with current and new password.
+- **Example:**
+  ```bash
+  curl -X POST "https://your-api.azurewebsites.net/CustomGraph/changePassword" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"currentPassword": "OldPassword123!", "newPassword": "NewPassword456!"}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/resetPasswordById`
+- **Purpose:** Reset user password by object ID or email using direct Microsoft Graph API calls.
+- **Method:** PATCH
+- **Parameters:**
+  - `idOrEmail` (query): User object ID or email address.
+  - Request body: JSON object with password profile.
+- **Example:**
+  ```bash
+  curl -X PATCH "https://your-api.azurewebsites.net/CustomGraph/resetPasswordById?idOrEmail=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"passwordProfile": {"password": "NewPassword123!", "forceChangePasswordNextSignIn": true}}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/resetPasswordByEmail`
+- **Purpose:** Reset user password by email using direct Microsoft Graph API calls.
+- **Method:** PATCH
+- **Parameters:**
+  - `email` (query): User email address.
+  - Request body: JSON object with password profile.
+- **Example:**
+  ```bash
+  curl -X PATCH "https://your-api.azurewebsites.net/CustomGraph/resetPasswordByEmail?email=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"passwordProfile": {"password": "NewPassword123!", "forceChangePasswordNextSignIn": true}}'
+  ```
+- **Response:** Success message.
+
+### `/CustomGraph/getAllUsers`
+- **Purpose:** Get all users using direct Microsoft Graph API calls.
+- **Method:** GET
+- **Parameters:**
+  - `top` (query, optional): Number of users to return (default: 10).
+- **Example:**
+  ```bash
+  curl -X GET "https://your-api.azurewebsites.net/CustomGraph/getAllUsers?top=20" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:** Microsoft Graph users collection.
 
 ---
 
