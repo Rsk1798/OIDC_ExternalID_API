@@ -172,8 +172,32 @@ curl -X GET "https://localhost:7110/CustomGraph/getUserById?idOrEmail=user@examp
 | `/Graph/resetPasswordByEmail`                | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
 | `/Graph/requestPasswordReset(SSPR-likeInAzure` | None (self-service, email only)      | Anyone (self-service)                  | None                                   |
 | `/Graph/completePasswordReset(SSPR-likeInAzure)` | `User.ReadWrite.All`                 | Anyone with valid verification code     | None (self-service, but token if secured)|
-| `/CustomGraph/*`                             | Same as above, but via direct Graph API | Same as above                         | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/me`                            | Same as `/Graph/me`                  | Any authenticated user                 | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getUserById`                   | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getUserByEmail`                | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserById`                | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserByEmail`             | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserAttributesById`      | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserAttributesByEmail`   | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/deleteUserById`                | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/deleteUserByEmail`             | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/changePassword`                | `Directory.AccessAsUser.All`         | Any signed-in user (self-service)      | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/resetPasswordById`             | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/resetPasswordByEmail`          | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getAllUsers`                   | `User.Read.All`                      | Admins, User Admins, Helpdesk          | JWT Bearer token (exchanged for Graph) |
 | `/WeatherForecast`                           | None                                 | Anyone                                 | None                                   |
+
+---
+
+**Legend:**
+- **Admin**: Global Admin, User Admin, Helpdesk Admin (with sufficient rights)
+- **Self**: The user acting on their own profile
+- **Bearer token**: The `Authorization: Bearer <token>` header, required in secure/production mode
+- **JWT Bearer token (exchanged for Graph)**: Your API's JWT token, exchanged for a Microsoft Graph token
+
+**Token Usage:**
+- In open/testing mode: No token is required for any endpoint except `/CustomGraph/*`.
+- In secure/production mode: All `/Graph/*` and `/CustomGraph/*` endpoints (except SSPR) require a valid token with the appropriate Microsoft Graph delegated permissions.
 
 ### Legend
 - **Admin**: Global Admin, User Admin, Helpdesk Admin (with sufficient rights)
