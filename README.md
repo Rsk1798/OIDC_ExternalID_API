@@ -68,6 +68,8 @@ The API now uses **JWT Bearer token authentication** for secure access to all Gr
    - Try `PATCH /CustomGraph/updateUserByEmail?email=user@example.com` (update user by email)
    - Try `POST /CustomGraph/changePassword` (change password)
    - Try `PATCH /CustomGraph/resetPasswordByEmail?email=user@example.com` (reset password by email)
+   - Try `POST /Graph/requestPasswordReset(SSPR-likeInAzure` (request password reset)
+   - Try `POST /Graph/completePasswordReset(SSPR-likeInAzure)` (complete password reset)
 
 ---
 
@@ -149,8 +151,8 @@ The table below shows which API endpoints are available to different user types 
 | `/Graph/changePassword`          |    ✅     |    ✅     |        ❌*       |
 | `/Graph/resetPasswordById`       |    ✅     |    ✅     |        ❌*       |
 | `/Graph/resetPasswordByEmail`    |    ✅     |    ✅     |        ❌*       |
-| `/Graph/requestPasswordReset`    |    ✅     |    ✅     |        ❌*       |
-| `/Graph/completePasswordReset`   |    ✅     |    ✅     |        ❌*       |
+| `/Graph/requestPasswordReset(SSPR-likeInAzure`    |    ✅     |    ✅     |        ❌*       |
+| `/Graph/completePasswordReset(SSPR-likeInAzure)`   |    ✅     |    ✅     |        ❌*       |
 
 - **✅ = Supported**
 - **❌ = Not supported for social/federated users** (must reset password with their original provider)
@@ -190,8 +192,8 @@ When you use PKCE from Swagger UI (OAuth2 Authorization Code flow with PKCE), yo
 | `/Graph/changePassword`          |              ✅               |            ❌              |                              |
 | `/Graph/resetPasswordById`       |              ✅               |            ❌              | Admin only                   |
 | `/Graph/resetPasswordByEmail`    |              ✅               |            ❌              | Admin only                   |
-| `/Graph/requestPasswordReset`    |              ✅               |            ❌              | Self-service                 |
-| `/Graph/completePasswordReset`   |              ✅               |            ❌              | Self-service                 |
+| `/Graph/requestPasswordReset(SSPR-likeInAzure`    |              ✅               |            ❌              | Self-service                 |
+| `/Graph/completePasswordReset(SSPR-likeInAzure)`   |              ✅               |            ❌              | Self-service                 |
 | `/WeatherForecast`               |              ✅               |            ✅              | Public                       |
 
 - **✅ = Supported**
