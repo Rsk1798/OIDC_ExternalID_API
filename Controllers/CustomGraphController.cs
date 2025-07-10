@@ -28,7 +28,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Get current user information from the JWT token
         /// </summary>
-        [HttpGet("customMe")]
+        [HttpGet("me")]
         public IActionResult GetCurrentUser()
         {
             try
@@ -55,7 +55,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Get user by ID or email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpGet("customGetUserById")]
+        [HttpGet("getUserById")]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -105,7 +105,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Get user by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpGet("customGetUserByEmail")]
+        [HttpGet("getUserByEmail")]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             try
@@ -161,7 +161,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Update user by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPatch("customUpdateUserById")]
+        [HttpPatch("updateUserById")]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] JsonElement updates)
         {
             try
@@ -206,7 +206,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Update user by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPatch("customUpdateUserByEmail")]
+        [HttpPatch("updateUserByEmail")]
         public async Task<IActionResult> UpdateUserByEmail([FromQuery] string email, [FromBody] JsonElement updates)
         {
             try
@@ -272,7 +272,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Update user attributes by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPatch("customUpdateUserAttributesById")]
+        [HttpPatch("updateUserAttributesById")]
         public async Task<IActionResult> UpdateUserAttributesById([FromQuery] string idOrEmail, [FromBody] JsonElement updates)
         {
             try
@@ -317,7 +317,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Update user attributes by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPatch("customUpdateUserAttributesByEmail")]
+        [HttpPatch("updateUserAttributesByEmail")]
         public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] JsonElement updates)
         {
             try
@@ -383,7 +383,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Delete user by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpDelete("customDeleteUserById")]
+        [HttpDelete("deleteUserById")]
         public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
         {
             try
@@ -427,7 +427,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Delete user by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpDelete("customDeleteUserByEmail")]
+        [HttpDelete("deleteUserByEmail")]
         public async Task<IActionResult> DeleteUserByEmail([FromQuery] string email)
         {
             try
@@ -492,7 +492,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Change password using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPost("customMeChangePassword")]
+        [HttpPost("changePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] JsonElement passwordChange)
         {
             try
@@ -544,7 +544,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Reset password by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPatch("customResetPasswordById")]
+        [HttpPatch("resetPasswordById")]
         public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] JsonElement passwordReset)
         {
             try
@@ -589,7 +589,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Reset password by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpPatch("customResetPasswordByEmail")]
+        [HttpPatch("resetPasswordByEmail")]
         public async Task<IActionResult> ResetPasswordByEmail([FromQuery] string email, [FromBody] JsonElement passwordReset)
         {
             try
@@ -655,7 +655,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <summary>
         /// Get all users using your JWT token to authenticate with Microsoft Graph
         /// </summary>
-        [HttpGet("customGetAllUsers")]
+        [HttpGet("getAllUsers")]
         public async Task<IActionResult> GetAllUsers([FromQuery] int? top = 10)
         {
             try
