@@ -140,16 +140,16 @@ grant_type: client_credentials
 ### Example Usage
 ```bash
 # 1. Generate token
-curl -X POST "https://localhost:7110/Token" \
+curl -X POST "https://localhost:demo/Token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "client_id=test&client_secret=test&scope=api://default&grant_type=client_credentials"
 
 # 2. Use token with GraphController (uses GraphServiceClient)
-curl -X GET "https://localhost:7110/Graph/getUserById?idOrEmail=user@example.com" \
+curl -X GET "https://localhost:demo/Graph/getUserById?idOrEmail=user@example.com" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 # 3. Use token with CustomGraphController (uses your JWT directly)
-curl -X GET "https://localhost:7110/CustomGraph/getUserById?idOrEmail=user@example.com" \
+curl -X GET "https://localhost:demo/CustomGraph/getUserById?idOrEmail=user@example.com" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 

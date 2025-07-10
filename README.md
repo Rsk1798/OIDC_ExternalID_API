@@ -45,7 +45,7 @@ The API now uses **JWT Bearer token authentication** for secure access to all Gr
 
 1. **Generate a Token**:
    ```
-   POST https://localhost:7110/Token
+   POST https://localhost:demo/Token
    Content-Type: application/x-www-form-urlencoded
    
    client_id=your-client-id&client_secret=your-secret&scope=api://default&grant_type=client_credentials
@@ -53,7 +53,7 @@ The API now uses **JWT Bearer token authentication** for secure access to all Gr
 
 2. **Copy the Access Token** from the response
 
-3. **Open Swagger UI** at `https://localhost:7110/swagger`
+3. **Open Swagger UI** at `https://localhost:demo/swagger`
 
 4. **Authorize in Swagger UI**:
    - Click the **"Authorize"** button (🔒)
@@ -284,3 +284,102 @@ When you use PKCE from Swagger UI (OAuth2 Authorization Code flow with PKCE), yo
 ---
 
 For more details on endpoint permissions and roles, see the API Usage Guide and endpoint documentation above.
+
+## Azure AD Integration: Service Principal (SPN) and App Registration Support
+
+This application can be configured to work with both:
+
+### 1. Service Principal (SPN) / App Registration (Application Permissions)
+- Register an application in Azure AD (App Registration).
+- Assign application permissions (e.g., `User.Read.All`, `User.ReadWrite.All`, `User-PasswordProfile.ReadWrite.All`).
+- Generate a client secret or certificate for the app.
+- Use the app’s client ID and secret with the `client_credentials` grant in the `/Token` endpoint.
+- The API will authenticate as the app (Service Principal) and can call Microsoft Graph as the app.
+
+### 2. Delegated Permissions (User Context)
+- Register the app and assign delegated permissions.
+- Use user credentials (for testing) or implement OAuth2 Authorization Code flow.
+- The API will act on behalf of the signed-in user.
+
+### Summary Table
+
+| Scenario         | Supported by This API? | How to Configure/Use                |
+|------------------|-----------------------|-------------------------------------|
+| Service Principal (SPN) / App Registration (App-only) | ✅ Yes | Register app in Azure AD, assign application permissions, use client credentials in `/Token` |
+| Delegated (User) | ✅ Yes | Register app, assign delegated permissions, use user credentials or OAuth2 flow |
+
+### How to Configure
+1. Register your app in Azure AD (App Registration).
+2. Assign the required Microsoft Graph permissions (delegated and/or application).
+3. For SPN/app-only:
+   - Generate a client secret or certificate.
+   - Use `client_id` and `client_secret` with the `client_credentials` grant in `/Token`.
+4. For delegated:
+   - Use user credentials (for testing) or implement OAuth2 Authorization Code flow.
+
+**References:**
+- [App-only authentication with Microsoft Graph](https://learn.microsoft.com/en-us/graph/auth-v2-service)
+- [Delegated vs. Application permissions](https://learn.microsoft.com/en-us/graph/permissions-reference)
+
+## Step-by-Step Setup Instructions
+
+### 1. Service Principal (SPN) / App Registration (Application Permissions)
+
+**a. Register an Application in Azure AD**
+1. Go to [Azure Portal > Azure Active Directory > App registrations](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps).
+2. Click **New registration**.
+3. Enter a name, select supported account types, and click **Register**.
+
+**b. Configure Application Permissions**
+1. In your app registration, go to **API permissions** > **Add a permission** > **Microsoft Graph** > **Application permissions**.
+2. Add required permissions (e.g., `User.Read.All`, `User.ReadWrite.All`, `User-PasswordProfile.ReadWrite.All`).
+3. Click **Add permissions**.
+4. Click **Grant admin consent** for your tenant.
+
+**c. Create a Client Secret**
+1. Go to **Certificates & secrets** > **New client secret**.
+2. Add a description and expiration, then click **Add**.
+3. Copy the value (you will not see it again).
+
+**d. Configure Your API**
+- Use the `client_id` and `client_secret` from your app registration in your `/Token` endpoint with the `client_credentials` grant.
+
+**Example Token Request:**
+```bash
+curl -X POST "https://localhost:demo/Token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&scope=api://default&grant_type=client_credentials"
+```
+
+---
+
+### 2. Delegated (User) Permissions
+
+**a. Register an Application in Azure AD**
+- (Same as above)
+
+**b. Configure Delegated Permissions**
+1. In your app registration, go to **API permissions** > **Add a permission** > **Microsoft Graph** > **Delegated permissions**.
+2. Add required permissions (e.g., `User.Read`, `User.ReadWrite`, `User-PasswordProfile.ReadWrite.All`).
+3. Click **Add permissions**.
+4. Click **Grant admin consent** if needed.
+
+**c. (For testing) Use Resource Owner Password Credentials (ROPC) Flow**
+- Only for test tenants and non-MFA users.
+- Use the `/Token` endpoint with `grant_type=password`:
+
+```bash
+curl -X POST "https://localhost:demo/Token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&scope=api://default&grant_type=password&username=USER@DOMAIN.COM&password=USER_PASSWORD"
+```
+
+**d. (For production) Use OAuth2 Authorization Code Flow**
+- Implement the standard OAuth2 Authorization Code flow in your client app.
+- Redirect users to the Azure AD login page, obtain an authorization code, and exchange it for a token.
+- Use the token in the `Authorization` header for API requests.
+
+**References:**
+- [Microsoft Identity Platform: App registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app)
+- [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference)
+- [Microsoft Identity Platform: OAuth2.0 Authorization Code Flow](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow)
