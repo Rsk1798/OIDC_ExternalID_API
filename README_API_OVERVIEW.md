@@ -677,6 +677,30 @@ This section provides detailed documentation for all available endpoints in the 
   ```
 - **Note:** Requires `Authorization: Bearer <JWT>` header with a valid token.
 
+### `/CustomGraph/changePasswordByIdOrEmail`
+- **Purpose:** Allows the signed-in user to change their own password by providing their user object ID or email, current password, and new password in the request body.
+- **Method:** POST
+- **Body:**
+  ```json
+  {
+    "idOrEmail": "user@domain.com",
+    "currentPassword": "OldPassword123!",
+    "newPassword": "NewPassword456!"
+  }
+  ```
+- **Note:** Only works for the signed-in user; you cannot change another user's password with this endpoint.
+- **Example:**
+  ```bash
+  curl -X POST "https://localhost:demo/CustomGraph/changePasswordByIdOrEmail" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{"idOrEmail": "user@domain.com", "currentPassword": "OldPassword123!", "newPassword": "NewPassword456!"}'
+  ```
+- **Response:**
+  - `200 OK` with message `"Password changed successfully."` on success.
+  - `403 Forbidden` if you try to change another user's password.
+  - `400/401/500` with error message on failure.
+
 ---
 
 ## Usage Instructions
