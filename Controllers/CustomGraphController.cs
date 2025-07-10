@@ -686,6 +686,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Get all users using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpGet("getAllUsers")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllUsers([FromQuery] int? top = 10)
         {
             try
@@ -776,6 +777,68 @@ namespace OIDC_ExternalID_API.Controllers
             {
                 _logger.LogError(ex, "Error getting Microsoft Graph token");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Get user password methods by ID or email using your JWT token to authenticate with Microsoft Graph
+        /// </summary>
+        [HttpGet("getUserPasswordMethodsById")]
+        public async Task<IActionResult> GetUserPasswordMethodsById([FromQuery] string idOrEmail)
+        {
+            try
+            {
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized("Bearer token is required");
+                }
+                var jwtToken = authHeader.Substring("Bearer ".Length);
+                var graphToken = await GetMicrosoftGraphToken(jwtToken);
+                if (string.IsNullOrEmpty(graphToken))
+                {
+                    return Unauthorized("Failed to obtain Microsoft Graph token");
+                }
+                using var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken);
+
+                // Try to get the user by id or email
+                string userId = idOrEmail;
+                if (!Guid.TryParse(idOrEmail, out _))
+                {
+                    // Not a GUID, treat as email and look up user
+                    var searchResponse = await client.GetAsync($"https://graph.microsoft.com/v1.0/users?$filter=mail eq '{idOrEmail}' or otherMails/any(x:x eq '{idOrEmail}')");
+                    if (!searchResponse.IsSuccessStatusCode)
+                    {
+                        var errorContent = await searchResponse.Content.ReadAsStringAsync();
+                        return StatusCode((int)searchResponse.StatusCode, $"Graph API error: {errorContent}");
+                    }
+                    var searchContent = await searchResponse.Content.ReadAsStringAsync();
+                    var searchData = System.Text.Json.JsonDocument.Parse(searchContent);
+                    var users = searchData.RootElement.GetProperty("value");
+                    if (users.GetArrayLength() == 0)
+                    {
+                        return NotFound("User not found");
+                    }
+                    userId = users[0].GetProperty("id").GetString();
+                }
+
+                // Call the passwordMethods endpoint
+                var response = await client.GetAsync($"https://graph.microsoft.com/v1.0/users/{userId}/authentication/passwordMethods");
+                var content = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    return Content(content, "application/json");
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, $"Graph API error: {content}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting password methods for user: {IdOrEmail}", idOrEmail);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
     }

@@ -653,6 +653,30 @@ This section provides detailed documentation for all available endpoints in the 
   ```
 - **Response:** Microsoft Graph users collection.
 
+### `/CustomGraph/getUserPasswordMethodsById`
+- **Purpose:** Get the password authentication methods for a user by ID or email using direct Microsoft Graph API calls.
+- **Method:** GET
+- **Parameters:**
+  - `idOrEmail` (query): User object ID or email address.
+- **Example:**
+  ```bash
+  curl -X GET "https://localhost:demo/CustomGraph/getUserPasswordMethodsById?idOrEmail=user@example.com" \
+    -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+  ```
+- **Response:**
+  ```json
+  {
+    "value": [
+      {
+        "@odata.type": "#microsoft.graph.passwordAuthenticationMethod",
+        "id": "password",
+        "createdDateTime": "2020-01-01T00:00:00Z"
+      }
+    ]
+  }
+  ```
+- **Note:** Requires `Authorization: Bearer <JWT>` header with a valid token.
+
 ---
 
 ## Usage Instructions
