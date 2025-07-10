@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Security.Claims;
 using System.Text;
+using OIDC_ExternalID_API.Models;
 
 namespace OIDC_ExternalID_API.Controllers
 {
@@ -273,7 +274,8 @@ namespace OIDC_ExternalID_API.Controllers
         /// Update user attributes by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("updateUserAttributesById")]
-        public async Task<IActionResult> UpdateUserAttributesById([FromQuery] string idOrEmail, [FromBody] JsonElement updates)
+        // public async Task<IActionResult> UpdateUserAttributesById([FromQuery] string idOrEmail, [FromBody] JsonElement updates)
+        public async Task<IActionResult> UpdateUserAttributesById([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
         {
             try
             {
@@ -294,7 +296,18 @@ namespace OIDC_ExternalID_API.Controllers
                 using var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken);
 
-                var jsonContent = new StringContent(updates.GetRawText(), Encoding.UTF8, "application/json");
+                // var jsonContent = new StringContent(updates.GetRawText(), Encoding.UTF8, "application/json");
+                var user = new Dictionary<string, object>();
+                if (updates.DisplayName != null)
+                    user["displayName"] = updates.DisplayName;
+                if (updates.JobTitle != null)
+                    user["jobTitle"] = updates.JobTitle;
+                if (updates.Department != null)
+                    user["department"] = updates.Department;
+                // Add other allowed fields as needed
+
+                var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
+                
                 var response = await client.PatchAsync($"https://graph.microsoft.com/v1.0/users/{idOrEmail}", jsonContent);
                 
                 if (response.IsSuccessStatusCode)
@@ -318,7 +331,8 @@ namespace OIDC_ExternalID_API.Controllers
         /// Update user attributes by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("updateUserAttributesByEmail")]
-        public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] JsonElement updates)
+        //public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] JsonElement updates)
+        public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] UserUpdateModel updates)
         {
             try
             {
@@ -339,6 +353,7 @@ namespace OIDC_ExternalID_API.Controllers
                 using var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken);
 
+
                 // First, find the user by email
                 var searchResponse = await client.GetAsync($"https://graph.microsoft.com/v1.0/users?$filter=mail eq '{email}' or otherMails/any(x:x eq '{email}')");
                 
@@ -349,7 +364,10 @@ namespace OIDC_ExternalID_API.Controllers
                 }
 
                 var searchContent = await searchResponse.Content.ReadAsStringAsync();
-                var searchData = JsonDocument.Parse(searchContent);
+
+                // var searchData = JsonDocument.Parse(searchContent);
+                var searchData = System.Text.Json.JsonDocument.Parse(searchContent);
+
                 var users = searchData.RootElement.GetProperty("value");
                 
                 if (users.GetArrayLength() == 0)
@@ -359,8 +377,20 @@ namespace OIDC_ExternalID_API.Controllers
 
                 var userId = users[0].GetProperty("id").GetString();
 
+                var user = new Dictionary<string, object>();
+                if (updates.DisplayName != null)
+                    user["displayName"] = updates.DisplayName;
+                if (updates.JobTitle != null)
+                    user["jobTitle"] = updates.JobTitle;
+                if (updates.Department != null)
+                    user["department"] = updates.Department;
+                // Add other allowed fields as needed
+
                 // Update the user attributes
-                var jsonContent = new StringContent(updates.GetRawText(), Encoding.UTF8, "application/json");
+                // var jsonContent = new StringContent(updates.GetRawText(), Encoding.UTF8, "application/json");
+
+                var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
+
                 var updateResponse = await client.PatchAsync($"https://graph.microsoft.com/v1.0/users/{userId}", jsonContent);
                 
                 if (updateResponse.IsSuccessStatusCode)
