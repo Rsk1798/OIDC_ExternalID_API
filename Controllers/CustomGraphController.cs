@@ -841,5 +841,85 @@ namespace OIDC_ExternalID_API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+
+
+
+
+        public class ChangePasswordByIdOrEmailModel
+        {
+            public string IdOrEmail { get; set; }
+            public string CurrentPassword { get; set; }
+            public string NewPassword { get; set; }
+        }
+
+        [HttpPost("changePasswordByIdOrEmail")]
+        public async Task<IActionResult> ChangePasswordByIdOrEmail([FromBody] ChangePasswordByIdOrEmailModel model)
+        {
+            try
+            {
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                    return Unauthorized("Bearer token is required");
+
+                var jwtToken = authHeader.Substring("Bearer ".Length);
+                var graphToken = await GetMicrosoftGraphToken(jwtToken);
+                if (string.IsNullOrEmpty(graphToken))
+                    return Unauthorized("Failed to obtain Microsoft Graph token");
+
+                using var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken);
+
+                // Get the signed-in user's ID from the JWT
+                var userIdFromToken = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+                // Look up the user by id or email
+                string userId = model.IdOrEmail;
+                if (!Guid.TryParse(model.IdOrEmail, out _))
+                {
+                    // Not a GUID, treat as email and look up user
+                    var searchResponse = await client.GetAsync($"https://graph.microsoft.com/v1.0/users?$filter=mail eq '{model.IdOrEmail}' or otherMails/any(x:x eq '{model.IdOrEmail}')");
+                    if (!searchResponse.IsSuccessStatusCode)
+                    {
+                        var errorContent = await searchResponse.Content.ReadAsStringAsync();
+                        return StatusCode((int)searchResponse.StatusCode, $"Graph API error: {errorContent}");
+                    }
+                    var searchContent = await searchResponse.Content.ReadAsStringAsync();
+                    var searchData = System.Text.Json.JsonDocument.Parse(searchContent);
+                    var users = searchData.RootElement.GetProperty("value");
+                    if (users.GetArrayLength() == 0)
+                        return NotFound("User not found");
+                    userId = users[0].GetProperty("id").GetString();
+                }
+
+                // Only allow changing password for the signed-in user
+                if (!string.Equals(userId, userIdFromToken, StringComparison.OrdinalIgnoreCase))
+                    return Forbid("You can only change your own password.");
+
+                // Call /me/changePassword
+                var passwordChangeRequest = new
+                {
+                    currentPassword = model.CurrentPassword,
+                    newPassword = model.NewPassword
+                };
+                var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(passwordChangeRequest), System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://graph.microsoft.com/v1.0/me/changePassword", jsonContent);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                    return Ok("Password changed successfully.");
+                else
+                    return StatusCode((int)response.StatusCode, $"Graph API error: {responseContent}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for user: {IdOrEmail}", model.IdOrEmail);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
     }
 } 
