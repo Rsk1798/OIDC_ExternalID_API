@@ -157,47 +157,47 @@ curl -X GET "https://localhost:7110/CustomGraph/getUserById?idOrEmail=user@examp
 
 ## Required Microsoft Graph API Permissions and Endpoint Access
 
-| Endpoint                                      | Required Graph Permission(s)         | Who Can Use (User Type)                | Token Usage (in secure mode)           |
-|-----------------------------------------------|--------------------------------------|----------------------------------------|----------------------------------------|
-| `/Graph/getUserById`                         | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | Bearer token (delegated/admin)         |
-| `/Graph/getUserByEmail`                      | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | Bearer token (delegated/admin)         |
-| `/Graph/updateUserById`                      | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
-| `/Graph/updateUserByEmail`                   | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
-| `/Graph/updateUserAttributesById`            | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
-| `/Graph/updateUserAttributesByEmail`         | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
-| `/Graph/deleteUserById`                      | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
-| `/Graph/deleteUserByEmail`                   | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
-| `/Graph/changePassword`                      | `Directory.AccessAsUser.All`         | Any signed-in user (self-service)      | Bearer token (delegated)               |
-| `/Graph/resetPasswordById`                   | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
-| `/Graph/resetPasswordByEmail`                | `User.ReadWrite.All`                 | Admins, User Admins                    | Bearer token (admin)                   |
-| `/Graph/requestPasswordReset(SSPR-likeInAzure` | None (self-service, email only)      | Anyone (self-service)                  | None                                   |
-| `/Graph/completePasswordReset(SSPR-likeInAzure)` | `User.ReadWrite.All`                 | Anyone with valid verification code     | None (self-service, but token if secured)|
-| `/CustomGraph/me`                            | Same as `/Graph/me`                  | Any authenticated user                 | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/getUserById`                   | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/getUserByEmail`                | `User.Read.All`                      | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserById`                | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserByEmail`             | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserAttributesById`      | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/updateUserAttributesByEmail`   | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/deleteUserById`                | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/deleteUserByEmail`             | `User.ReadWrite.All`                 | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/changePassword`                | `Directory.AccessAsUser.All`         | Any signed-in user (self-service)      | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/resetPasswordById`             | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/resetPasswordByEmail`          | `User.ReadWrite.All`                 | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
-| `/CustomGraph/getAllUsers`                   | `User.Read.All`                      | Admins, User Admins, Helpdesk          | JWT Bearer token (exchanged for Graph) |
-| `/WeatherForecast`                           | None                                 | Anyone                                 | None                                   |
+| Endpoint                                      | Required Graph Permission(s)         | Type of Permission      | Who Can Use (User Type)                | Token Usage (in secure mode)           |
+|-----------------------------------------------|--------------------------------------|------------------------|----------------------------------------|----------------------------------------|
+| `/Graph/getUserById`                         | `User.Read.All`                      | Delegated or Application | Admins, User Admins, Helpdesk, Self    | Bearer token (delegated/admin)         |
+| `/Graph/getUserByEmail`                      | `User.Read.All`                      | Delegated or Application | Admins, User Admins, Helpdesk, Self    | Bearer token (delegated/admin)         |
+| `/Graph/updateUserById`                      | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
+| `/Graph/updateUserByEmail`                   | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
+| `/Graph/updateUserAttributesById`            | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
+| `/Graph/updateUserAttributesByEmail`         | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
+| `/Graph/deleteUserById`                      | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
+| `/Graph/deleteUserByEmail`                   | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| Bearer token (delegated/admin)         |
+| `/Graph/changePassword`                      | `Directory.AccessAsUser.All`         | Delegated               | Any signed-in user (self-service)      | Bearer token (delegated)               |
+| `/Graph/resetPasswordById`                   | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins                    | Bearer token (admin)                   |
+| `/Graph/resetPasswordByEmail`                | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins                    | Bearer token (admin)                   |
+| `/Graph/requestPasswordReset(SSPR-likeInAzure` | None (self-service, email only)      | N/A                    | Anyone (self-service)                  | None                                   |
+| `/Graph/completePasswordReset(SSPR-likeInAzure)` | `User.ReadWrite.All`                 | Delegated or Application | Anyone with valid verification code     | None (self-service, but token if secured)|
+| `/CustomGraph/me`                            | Same as `/Graph/me`                  | Delegated               | Any authenticated user                 | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getUserById`                   | `User.Read.All`                      | Delegated or Application | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getUserByEmail`                | `User.Read.All`                      | Delegated or Application | Admins, User Admins, Helpdesk, Self    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserById`                | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserByEmail`             | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserAttributesById`      | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/updateUserAttributesByEmail`   | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/deleteUserById`                | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/deleteUserByEmail`             | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins, Self (own profile)| JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/changePassword`                | `Directory.AccessAsUser.All`         | Delegated               | Any signed-in user (self-service)      | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/resetPasswordById`             | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/resetPasswordByEmail`          | `User.ReadWrite.All`                 | Delegated or Application | Admins, User Admins                    | JWT Bearer token (exchanged for Graph) |
+| `/CustomGraph/getAllUsers`                   | `User.Read.All`                      | Delegated or Application | Admins, User Admins, Helpdesk          | JWT Bearer token (exchanged for Graph) |
+| `/WeatherForecast`                           | None                                 | N/A                    | Anyone                                 | None                                   |
 
 ---
 
 **Legend:**
-- **Admin**: Global Admin, User Admin, Helpdesk Admin (with sufficient rights)
-- **Self**: The user acting on their own profile
-- **Bearer token**: The `Authorization: Bearer <token>` header, required in secure/production mode
-- **JWT Bearer token (exchanged for Graph)**: Your API's JWT token, exchanged for a Microsoft Graph token
+- **Delegated**: Requires a user context (user is signed in)
+- **Application**: App-only (client credentials) token, no user context
+- **Delegated or Application**: Both are supported by Microsoft Graph for this permission
+- **N/A**: Not applicable (no Graph permission required)
 
 **Token Usage:**
 - In open/testing mode: No token is required for any endpoint except `/CustomGraph/*`.
-- In secure/production mode: All `/Graph/*` and `/CustomGraph/*` endpoints (except SSPR) require a valid token with the appropriate Microsoft Graph delegated permissions.
+- In secure/production mode: All `/Graph/*` and `/CustomGraph/*` endpoints (except SSPR) require a valid token with the appropriate Microsoft Graph delegated or application permissions.
 
 ### Legend
 - **Admin**: Global Admin, User Admin, Helpdesk Admin (with sufficient rights)
@@ -706,3 +706,14 @@ curl -X POST "https://your-api.azurewebsites.net/Graph/changePassword" -d '{"cur
 ## For More Information
 - See the main `README.md` for full documentation, architecture, and security details.
 - For Microsoft Graph API permissions and usage, see [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference). 
+
+### Required Permissions for Password Reset (passwordProfile)
+
+| Scenario         | Least Privileged Permission            | Required Role (Delegated)                        |
+|------------------|---------------------------------------|--------------------------------------------------|
+| Delegated        | User-PasswordProfile.ReadWrite.All     | Privileged Authentication Administrator (minimum) |
+| Application-only | User-PasswordProfile.ReadWrite.All     | N/A (app-only)                                   |
+
+- In delegated scenarios, the calling app must be assigned a supported permission and a supported Microsoft Entra (Azure AD) role.
+- Privileged Authentication Administrator is the least privileged role that can reset passwords for all admins in the tenant.
+- In app-only scenarios, only the permission is required. 
