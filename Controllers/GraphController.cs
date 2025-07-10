@@ -18,6 +18,7 @@ namespace OIDC_ExternalID_API.Controllers
     [ApiController]
     [Route("[controller]")]
     [Authorize]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class GraphController : ControllerBase
     {
 
@@ -72,7 +73,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpPost("invite")]
         [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
+        
         public async Task<IActionResult> InviteUser(string email)
         {
             var invitation = new Invitation
