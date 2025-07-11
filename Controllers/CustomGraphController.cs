@@ -519,11 +519,17 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
+        public class ChangePasswordModel
+        {
+            public string CurrentPassword { get; set; }
+            public string NewPassword { get; set; }
+        }
+
         /// <summary>
-        /// Change password using your JWT token to authenticate with Microsoft Graph
+        /// Change password for the current user using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPost("changePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] JsonElement passwordChange)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel passwordChange)
         {
             try
             {
@@ -551,7 +557,14 @@ namespace OIDC_ExternalID_API.Controllers
                     return BadRequest("Unable to determine current user");
                 }
 
-                var jsonContent = new StringContent(passwordChange.GetRawText(), Encoding.UTF8, "application/json");
+                // Create the request body for Microsoft Graph changePassword API
+                var requestBody = new
+                {
+                    currentPassword = passwordChange.CurrentPassword,
+                    newPassword = passwordChange.NewPassword
+                };
+
+                var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
                 var response = await client.PostAsync($"https://graph.microsoft.com/v1.0/users/{currentUserId}/changePassword", jsonContent);
                 
                 if (response.IsSuccessStatusCode)
