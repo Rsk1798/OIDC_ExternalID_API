@@ -57,6 +57,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Get user by ID or email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpGet("getUserById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -163,6 +164,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Update user by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("updateUserById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] JsonElement updates)
         {
             try
@@ -274,6 +276,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Update user attributes by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("updateUserAttributesById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         // public async Task<IActionResult> UpdateUserAttributesById([FromQuery] string idOrEmail, [FromBody] JsonElement updates)
         public async Task<IActionResult> UpdateUserAttributesById([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
         {
@@ -414,6 +417,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Delete user by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpDelete("deleteUserById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
         {
             try
@@ -529,6 +533,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Change password for the current user using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPost("changePassword")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel passwordChange)
         {
             try
@@ -588,6 +593,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Reset password by ID using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("resetPasswordById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] JsonElement passwordReset)
         {
             try
@@ -700,6 +706,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// </summary>
         [HttpGet("getAllUsers")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> GetAllUsers([FromQuery] int? top = 10)
         {
             try
@@ -797,6 +804,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Get user password methods by ID or email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpGet("getUserPasswordMethodsById")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> GetUserPasswordMethodsById([FromQuery] string idOrEmail)
         {
             try
@@ -869,6 +877,7 @@ namespace OIDC_ExternalID_API.Controllers
         }
 
         [HttpPost("changePasswordByIdOrEmail")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> ChangePasswordByIdOrEmail([FromBody] ChangePasswordByIdOrEmailModel model)
         {
             try
