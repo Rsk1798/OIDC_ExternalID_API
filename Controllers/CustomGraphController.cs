@@ -852,6 +852,7 @@ namespace OIDC_ExternalID_API.Controllers
             public string IdOrEmail { get; set; }
             public string CurrentPassword { get; set; }
             public string NewPassword { get; set; }
+
         }
 
         [HttpPost("changePasswordByIdOrEmail")]
