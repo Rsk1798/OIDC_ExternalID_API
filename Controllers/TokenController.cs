@@ -237,6 +237,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// <returns>Token validation result</returns>
         [HttpPost("validate")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult ValidateToken([FromBody] TokenValidationRequest request)
         {
             try

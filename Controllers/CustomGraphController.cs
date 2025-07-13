@@ -30,6 +30,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// Get current user information from the JWT token
         /// </summary>
         [HttpGet("me")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult GetCurrentUser()
         {
             try
