@@ -95,7 +95,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// </summary>
         /// <param name="request">Azure AD client credentials request</param>
         /// <returns>Azure AD access token response</returns>
-        [HttpPost("azure-ad")]
+        [HttpPost("azure-ad-Token_Generation")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(AzureAdTokenResponse), 200)]
         [ProducesResponseType(400)]
@@ -196,6 +196,7 @@ namespace OIDC_ExternalID_API.Controllers
             OperationId = "GenerateAzureAdClientCredentialsToken",
             Tags = new[] { "Token" }
         )]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> GetAzureAdClientCredentialsToken([FromBody] AzureAdClientCredentialsRequest request)
         {
             try
