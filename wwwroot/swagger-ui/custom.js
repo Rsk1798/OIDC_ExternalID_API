@@ -32,23 +32,25 @@
 
         const helperDiv = document.createElement('div');
         helperDiv.className = 'token-helper';
+        // The following block is commented out to disable the Quick Token Generation box:
+        /*
         helperDiv.innerHTML = `
-            //<div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #667eea;">
-            //    <h4 style="margin: 0 0 10px 0; color: #3b4151;">🔑 Quick Token Generation</h4>
-            //    <p style="margin: 0 0 10px 0; color: #555; font-size: 14px;">
-            //        Need a token? Use one of these endpoints:
-            //    </p>
-            //    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            //        <button onclick="generateToken('azure-ad')" style="background: #49cc90; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-            //            Generate Azure AD Token
-            //        </button>
-            //        <button onclick="generateToken('custom')" style="background: #667eea; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-            //            Generate Custom JWT
-            //        </button>
-            //    </div>
-            //</div>
+            <div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid #667eea;">
+                <h4 style="margin: 0 0 10px 0; color: #3b4151;">🔑 Quick Token Generation</h4>
+                <p style="margin: 0 0 10px 0; color: #555; font-size: 14px;">
+                    Need a token? Use one of these endpoints:
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="generateToken('azure-ad')" style="background: #49cc90; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        Generate Azure AD Token
+                    </button>
+                    <button onclick="generateToken('custom')" style="background: #667eea; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        Generate Custom JWT
+                    </button>
+                </div>
+            </div>
         `;
-
+        */
         authSection.parentNode.insertBefore(helperDiv, authSection);
     }
 

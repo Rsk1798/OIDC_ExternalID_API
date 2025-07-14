@@ -162,22 +162,23 @@ For detailed documentation, see the [Azure AD Token Usage Guide](AZURE_AD_TOKEN_
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"
-**JWT Authorization header using the Bearer scheme.**
+        **JWT Authorization header using the Bearer scheme.**
 
-**Supported Token Types:**
-- Custom JWT tokens (from `/Token`)
-- Azure AD tokens (from `/Token/azure-ad`)
-- Azure AD client credentials (from `/Token/azure-ad/client-credentials`)
+        **Supported Token Types:**
+        - Custom JWT tokens (from `/Token`)
+        - Azure AD tokens (from `/Token/azure-ad`)
+       
 
-**Format:** `Bearer <your-token>`
+        **Format:** `Bearer <your-token>`
 
-**Example:** `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`",
+        **Example:** `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`",
+
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
+    // **Supported Token Types:** - Azure AD client credentials (from `/Token/azure-ad/client-credentials`)
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
