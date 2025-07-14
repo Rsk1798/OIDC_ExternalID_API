@@ -118,43 +118,42 @@ builder.Services.AddSwaggerGen(c =>
         Title = "External ID Graph API", 
         Version = "v1",
         Description = @"
-## 🔐 Authentication System
+        ## 🔐 Authentication System
 
-This API supports multiple authentication methods:
+        This API supports multiple authentication methods:
 
-### Token Types Supported:
-1. **Custom JWT Tokens** (from `/Token` endpoint)
-2. **Azure AD Tokens** (from `/Token/azure-ad` endpoint)
+        ### Token Types Supported:
+        1. **Custom JWT Tokens** (from `/Token` endpoint)
+        2. **Azure AD Tokens** (from `/Token/azure-ad` endpoint)
 
-### How to Use:
-1. **Generate a token** using one of the Token endpoints
-2. **Click 'Authorize'** in Swagger UI
-3. **Enter your token** in format: `Bearer <your-token>`
-4. **Test the endpoints** - token will be automatically included
+        ### How to Use:
+        1. **Generate a token** using one of the Token endpoints
+        2. **Click 'Authorize'** in Swagger UI
+        3. **Enter your token** in format: `Bearer <your-token>`
+        4. **Test the endpoints** - token will be automatically included
 
-### Supported Controllers:
-- **TokenController**: Generate and validate tokens
-- **GraphController**: Azure AD user management (uses GraphServiceClient)
-- **CustomGraphController**: Direct Microsoft Graph API calls
+        ### Supported Controllers:
+        - **TokenController**: Generate and validate tokens
+        - **GraphController**: Azure AD user management (uses GraphServiceClient)
+        - **CustomGraphController**: Direct Microsoft Graph API calls
 
-### Quick Start:
-1. Generate token: `POST /Token/azure-ad` or `POST /Token`
-2. Copy the `access_token` from response
-3. Click 'Authorize' and enter: `Bearer <access_token>`
-4. Test endpoints like `GET /CustomGraph/getUserByEmail`
-
-For detailed documentation, see the [Azure AD Token Usage Guide](AZURE_AD_TOKEN_USAGE.md).
+        ### Quick Start:
+        1. Generate token: `POST /Token/azure-ad` or `POST /Token`
+        2. Copy the `access_token` from response
+        3. Click 'Authorize' and enter: `Bearer <access_token>`
+        4. Test endpoints like `GET /CustomGraph/getUserByEmail`
         ",
-        Contact = new OpenApiContact
-        {
-            Name = "API Support",
-            Email = "support@example.com"
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT License",
-            Url = new Uri("https://opensource.org/licenses/MIT")
-        }
+        // ### Quick Start: For detailed documentation, see the [Azure AD Token Usage Guide](AZURE_AD_TOKEN_USAGE.md).
+        //Contact = new OpenApiContact
+        //{
+        //    Name = "API Support",
+        //    Email = "support@example.com"
+        //},
+        //License = new OpenApiLicense
+        //{
+        //    Name = "MIT License",
+        //    Url = new Uri("https://opensource.org/licenses/MIT")
+        //}
     });
     //### Token Types Supported: 3. **Azure AD Client Credentials** (from `/Token/azure-ad/client-credentials` endpoint)
 
