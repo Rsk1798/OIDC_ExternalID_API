@@ -60,13 +60,13 @@ namespace OIDC_ExternalID_API.Controllers
                 {
                     case "client_credentials":
                         return await HandleClientCredentialsFlow(request);
-                    
+
                     case "password":
                         return await HandlePasswordFlow(request);
-                    
+
                     case "refresh_token":
                         return await HandleRefreshTokenFlow(request);
-                    
+
                     default:
                         return BadRequest(new { error = "unsupported_grant_type", error_description = $"Grant type '{request.grant_type}' is not supported" });
                 }
@@ -262,7 +262,7 @@ namespace OIDC_ExternalID_API.Controllers
                 try
                 {
                     var principal = tokenHandler.ValidateToken(request.access_token, validationParameters, out var validatedToken);
-                    
+
                     var subject = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                     var scope = principal.FindFirst("scope")?.Value;
 
