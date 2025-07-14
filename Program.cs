@@ -125,7 +125,6 @@ This API supports multiple authentication methods:
 ### Token Types Supported:
 1. **Custom JWT Tokens** (from `/Token` endpoint)
 2. **Azure AD Tokens** (from `/Token/azure-ad` endpoint)
-3. **Azure AD Client Credentials** (from `/Token/azure-ad/client-credentials` endpoint)
 
 ### How to Use:
 1. **Generate a token** using one of the Token endpoints
@@ -157,6 +156,7 @@ For detailed documentation, see the [Azure AD Token Usage Guide](AZURE_AD_TOKEN_
             Url = new Uri("https://opensource.org/licenses/MIT")
         }
     });
+    //### Token Types Supported: 3. **Azure AD Client Credentials** (from `/Token/azure-ad/client-credentials` endpoint)
 
     // Add Bearer token authentication for Swagger UI
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
