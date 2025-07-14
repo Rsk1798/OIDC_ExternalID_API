@@ -6,13 +6,14 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Security.Claims;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 using OIDC_ExternalID_API.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OIDC_ExternalID_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize]
     public class CustomGraphController : ControllerBase
     {
         private readonly IConfiguration _config;
@@ -109,6 +110,17 @@ namespace OIDC_ExternalID_API.Controllers
         /// Get user by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpGet("getUserByEmail")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Get User by Email Address",
+            Description = "Retrieve user details from Microsoft Graph API using email address. Supports all token types (Custom JWT, Azure AD).",
+            OperationId = "GetUserByEmail",
+            Tags = new[] { "CustomGraph" }
+        )]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             try
@@ -211,6 +223,17 @@ namespace OIDC_ExternalID_API.Controllers
         /// Update user by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("updateUserByEmail")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Update User by Email Address",
+            Description = "Update user attributes in Microsoft Graph API using email address. Supports partial updates.",
+            OperationId = "UpdateUserByEmail",
+            Tags = new[] { "CustomGraph" }
+        )]
         public async Task<IActionResult> UpdateUserByEmail([FromQuery] string email, [FromBody] JsonElement updates)
         {
             try
@@ -335,6 +358,17 @@ namespace OIDC_ExternalID_API.Controllers
         /// Update user attributes by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("updateUserAttributesByEmail")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Update Specific User Attributes by Email",
+            Description = "Update specific user attributes using a structured model. Type-safe updates with validation.",
+            OperationId = "UpdateUserAttributesByEmail",
+            Tags = new[] { "CustomGraph" }
+        )]
         //public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] JsonElement updates)
         public async Task<IActionResult> UpdateUserAttributesByEmail([FromQuery] string email, [FromBody] UserUpdateModel updates)
         {
@@ -463,6 +497,17 @@ namespace OIDC_ExternalID_API.Controllers
         /// Delete user by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpDelete("deleteUserByEmail")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Delete User by Email Address",
+            Description = "Delete a user from Microsoft Graph API using email address. ⚠️ This operation is permanent.",
+            OperationId = "DeleteUserByEmail",
+            Tags = new[] { "CustomGraph" }
+        )]
         public async Task<IActionResult> DeleteUserByEmail([FromQuery] string email)
         {
             try
@@ -640,6 +685,17 @@ namespace OIDC_ExternalID_API.Controllers
         /// Reset password by email using your JWT token to authenticate with Microsoft Graph
         /// </summary>
         [HttpPatch("resetPasswordByEmail")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Reset User Password by Email",
+            Description = "Reset a user's password in Microsoft Graph API using email address. Admin-level operation.",
+            OperationId = "ResetPasswordByEmail",
+            Tags = new[] { "CustomGraph" }
+        )]
         public async Task<IActionResult> ResetPasswordByEmail([FromQuery] string email, [FromBody] JsonElement passwordReset)
         {
             try
@@ -753,21 +809,36 @@ namespace OIDC_ExternalID_API.Controllers
 
         /// <summary>
         /// Exchange your JWT token for a Microsoft Graph access token
-        /// This is where you can implement your own token exchange logic
+        /// This method now supports all three token types:
+        /// 1. Azure AD tokens (from /Token/azure-ad or /Token/azure-ad/client-credentials)
+        /// 2. Custom JWT tokens (from /Token)
+        /// 3. Direct Azure AD client credentials flow
         /// </summary>
         private async Task<string> GetMicrosoftGraphToken(string jwtToken)
         {
             try
             {
-                // Option 1: Use your JWT token directly (if it has the right claims/scopes)
-                // This would require your JWT token to be accepted by Microsoft Graph
-                
-                // Option 2: Exchange your JWT token for an Azure AD token
-                // This is the more common approach
+                // First, try to validate if this is an Azure AD token by checking its format
+                if (IsAzureAdToken(jwtToken))
+                {
+                    // If it's an Azure AD token, use it directly
+                    _logger.LogInformation("Using Azure AD token directly for Microsoft Graph");
+                    return jwtToken;
+                }
+
+                // If it's a custom JWT token, we need to exchange it for an Azure AD token
+                // Since we don't have user credentials, we'll use client credentials flow
+                _logger.LogInformation("Using client credentials flow to get Microsoft Graph token for custom JWT");
                 
                 var tenantId = _config["AzureAd:TenantId"];
                 var clientId = _config["AzureAd:ClientId"];
                 var clientSecret = _config["AzureAd:ClientSecret"];
+
+                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+                {
+                    _logger.LogError("Azure AD configuration is missing for client credentials flow");
+                    return null;
+                }
 
                 using var client = _httpClientFactory.CreateClient();
                 
@@ -790,7 +861,8 @@ namespace OIDC_ExternalID_API.Controllers
                 }
                 else
                 {
-                    _logger.LogError("Failed to get Microsoft Graph token: {StatusCode}", tokenResponse.StatusCode);
+                    var errorContent = await tokenResponse.Content.ReadAsStringAsync();
+                    _logger.LogError("Failed to get Microsoft Graph token: {StatusCode} - {Error}", tokenResponse.StatusCode, errorContent);
                     return null;
                 }
             }
@@ -798,6 +870,53 @@ namespace OIDC_ExternalID_API.Controllers
             {
                 _logger.LogError(ex, "Error getting Microsoft Graph token");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Check if the token is an Azure AD token based on its characteristics
+        /// </summary>
+        private bool IsAzureAdToken(string token)
+        {
+            try
+            {
+                // Azure AD tokens are typically longer than custom JWT tokens
+                // and contain specific claims that indicate they're from Azure AD
+                if (string.IsNullOrEmpty(token) || token.Length < 100)
+                    return false;
+
+                // Try to decode the JWT to check for Azure AD specific claims
+                var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                if (tokenHandler.CanReadToken(token))
+                {
+                    var jwtToken = tokenHandler.ReadJwtToken(token);
+                    
+                    // Check for Azure AD specific claims
+                    var issuer = jwtToken.Claims.FirstOrDefault(c => c.Type == "iss")?.Value;
+                    var audience = jwtToken.Claims.FirstOrDefault(c => c.Type == "aud")?.Value;
+                    
+                    // Azure AD tokens typically have these characteristics:
+                    // - Issuer contains "login.microsoftonline.com" or "sts.windows.net"
+                    // - Audience contains "https://graph.microsoft.com" or similar
+                    if (!string.IsNullOrEmpty(issuer) && 
+                        (issuer.Contains("login.microsoftonline.com") || issuer.Contains("sts.windows.net")))
+                    {
+                        return true;
+                    }
+                    
+                    if (!string.IsNullOrEmpty(audience) && 
+                        audience.Contains("graph.microsoft.com"))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                // If we can't parse the token, assume it's not an Azure AD token
+                return false;
             }
         }
 

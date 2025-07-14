@@ -9,6 +9,7 @@ using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text.Json;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OIDC_ExternalID_API.Controllers
 {
@@ -35,6 +36,16 @@ namespace OIDC_ExternalID_API.Controllers
         /// <returns>Access token response</returns>
         [HttpPost]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(OAuth2TokenResponse), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Generate Custom JWT Token",
+            Description = "Generate a custom JWT token using OAuth 2.0 flows. Supports client_credentials, password, and refresh_token grant types.",
+            OperationId = "GenerateCustomJwtToken",
+            Tags = new[] { "Token" }
+        )]
         public async Task<IActionResult> GetToken([FromForm] OAuth2TokenRequest request)
         {
             try
@@ -74,6 +85,186 @@ namespace OIDC_ExternalID_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing token request for client_id: {ClientId}", request.client_id);
+                return StatusCode(500, new { error = "server_error", error_description = "Internal server error" });
+            }
+        }
+
+        /// <summary>
+        /// Generate Azure AD token for Microsoft Graph API access using client credentials flow
+        /// This token can be used for both GraphController and CustomGraphController
+        /// </summary>
+        /// <param name="request">Azure AD client credentials request</param>
+        /// <returns>Azure AD access token response</returns>
+        [HttpPost("azure-ad")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(AzureAdTokenResponse), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Generate Azure AD Token (Client Credentials)",
+            Description = "Generate an Azure AD token using client credentials flow. This token works with both GraphController and CustomGraphController endpoints.",
+            OperationId = "GenerateAzureAdToken",
+            Tags = new[] { "Token" }
+        )]
+        public async Task<IActionResult> GetAzureAdToken([FromBody] AzureAdClientCredentialsRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Validate required parameters
+                if (string.IsNullOrEmpty(request.client_id))
+                {
+                    return BadRequest(new { error = "invalid_request", error_description = "client_id is required" });
+                }
+
+                if (string.IsNullOrEmpty(request.client_secret))
+                {
+                    return BadRequest(new { error = "invalid_request", error_description = "client_secret is required" });
+                }
+
+                // Get Azure AD tenant configuration
+                var tenantId = _config["AzureAd:TenantId"];
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    return StatusCode(500, new { error = "configuration_error", error_description = "Azure AD tenant configuration is missing" });
+                }
+
+                // Use the scope provided by user or default to Microsoft Graph
+                var scope = request.scope ?? "https://graph.microsoft.com/.default";
+
+                // Create token request using client credentials flow
+                var tokenRequest = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                    new KeyValuePair<string, string>("client_id", request.client_id),
+                    new KeyValuePair<string, string>("client_secret", request.client_secret),
+                    new KeyValuePair<string, string>("scope", scope)
+                });
+
+                // Request token from Azure AD
+                var tokenResponse = await _httpClient.PostAsync($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token", tokenRequest);
+                
+                if (tokenResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await tokenResponse.Content.ReadAsStringAsync();
+                    var tokenData = JsonSerializer.Deserialize<AzureAdTokenResponse>(responseContent);
+                    
+                    return Ok(tokenData);
+                }
+                else
+                {
+                    var errorContent = await tokenResponse.Content.ReadAsStringAsync();
+                    _logger.LogError($"Azure AD token request failed: {tokenResponse.StatusCode} - {errorContent}");
+                    
+                    // Try to parse error response
+                    try
+                    {
+                        var errorData = JsonSerializer.Deserialize<AzureAdErrorResponse>(errorContent);
+                        return BadRequest(errorData);
+                    }
+                    catch
+                    {
+                        return BadRequest(new { error = "azure_ad_error", error_description = $"Azure AD token request failed: {errorContent}" });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating Azure AD token for client_id: {ClientId}", request?.client_id);
+                return StatusCode(500, new { error = "server_error", error_description = "Internal server error" });
+            }
+        }
+
+        /// <summary>
+        /// Generate Azure AD token using client credentials flow (for service-to-service scenarios)
+        /// This token can be used for both GraphController and CustomGraphController
+        /// </summary>
+        /// <param name="request">Azure AD client credentials request</param>
+        /// <returns>Azure AD access token response</returns>
+        [HttpPost("azure-ad/client-credentials")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(AzureAdTokenResponse), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        [SwaggerOperation(
+            Summary = "Generate Azure AD Token (Alternative Client Credentials)",
+            Description = "Alternative endpoint for generating Azure AD tokens using client credentials flow. Same functionality as /Token/azure-ad.",
+            OperationId = "GenerateAzureAdClientCredentialsToken",
+            Tags = new[] { "Token" }
+        )]
+        public async Task<IActionResult> GetAzureAdClientCredentialsToken([FromBody] AzureAdClientCredentialsRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Validate required parameters
+                if (string.IsNullOrEmpty(request.client_id))
+                {
+                    return BadRequest(new { error = "invalid_request", error_description = "client_id is required" });
+                }
+
+                if (string.IsNullOrEmpty(request.client_secret))
+                {
+                    return BadRequest(new { error = "invalid_request", error_description = "client_secret is required" });
+                }
+
+                // Get Azure AD tenant configuration
+                var tenantId = _config["AzureAd:TenantId"];
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    return StatusCode(500, new { error = "configuration_error", error_description = "Azure AD tenant configuration is missing" });
+                }
+
+                // Use the scope provided by user or default to Microsoft Graph
+                var scope = request.scope ?? "https://graph.microsoft.com/.default";
+
+                // Create token request using client credentials flow
+                var tokenRequest = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                    new KeyValuePair<string, string>("client_id", request.client_id),
+                    new KeyValuePair<string, string>("client_secret", request.client_secret),
+                    new KeyValuePair<string, string>("scope", scope)
+                });
+
+                // Request token from Azure AD
+                var tokenResponse = await _httpClient.PostAsync($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token", tokenRequest);
+                
+                if (tokenResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await tokenResponse.Content.ReadAsStringAsync();
+                    var tokenData = JsonSerializer.Deserialize<AzureAdTokenResponse>(responseContent);
+                    
+                    return Ok(tokenData);
+                }
+                else
+                {
+                    var errorContent = await tokenResponse.Content.ReadAsStringAsync();
+                    _logger.LogError($"Azure AD client credentials token request failed: {tokenResponse.StatusCode} - {errorContent}");
+                    
+                    // Try to parse error response
+                    try
+                    {
+                        var errorData = JsonSerializer.Deserialize<AzureAdErrorResponse>(errorContent);
+                        return BadRequest(errorData);
+                    }
+                    catch
+                    {
+                        return BadRequest(new { error = "azure_ad_error", error_description = $"Azure AD token request failed: {errorContent}" });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating Azure AD client credentials token for client_id: {ClientId}", request?.client_id);
                 return StatusCode(500, new { error = "server_error", error_description = "Internal server error" });
             }
         }
@@ -333,5 +524,39 @@ namespace OIDC_ExternalID_API.Controllers
         public DateTime? exp { get; set; }
         public DateTime? iat { get; set; }
         public string error { get; set; }
+    }
+
+    public class AzureAdTokenRequest
+    {
+        public string username { get; set; }
+        public string password { get; set; }
+        public string[] scopes { get; set; }
+    }
+
+    public class AzureAdClientCredentialsRequest
+    {
+        public string client_id { get; set; }
+        public string client_secret { get; set; }
+        public string scope { get; set; }
+    }
+
+    public class AzureAdTokenResponse
+    {
+        public string access_token { get; set; }
+        public string token_type { get; set; }
+        public int expires_in { get; set; }
+        public string scope { get; set; }
+        public string refresh_token { get; set; }
+        public string id_token { get; set; }
+    }
+
+    public class AzureAdErrorResponse
+    {
+        public string error { get; set; }
+        public string error_description { get; set; }
+        public string error_codes { get; set; }
+        public string timestamp { get; set; }
+        public string trace_id { get; set; }
+        public string correlation_id { get; set; }
     }
 }

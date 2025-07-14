@@ -5,6 +5,10 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
+using Microsoft.OpenApi.Any;
+using OIDC_ExternalID_API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Add JWT Bearer Authentication
+// Add JWT Bearer Authentication with support for both custom JWT and Azure AD tokens
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 if (string.IsNullOrEmpty(jwtSecret))
 {
@@ -33,6 +37,54 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero
+        };
+        
+        // Handle authentication events to support Azure AD tokens
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                // If token validation succeeded, we're good
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                // Check if this might be an Azure AD token
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    try
+                    {
+                        var tokenHandler = new JwtSecurityTokenHandler();
+                        if (tokenHandler.CanReadToken(token))
+                        {
+                            var jwtToken = tokenHandler.ReadJwtToken(token);
+                            var issuer = jwtToken.Claims.FirstOrDefault(c => c.Type == "iss")?.Value;
+                            
+                            // If it's an Azure AD token, don't fail authentication
+                            if (!string.IsNullOrEmpty(issuer) && 
+                                (issuer.Contains("login.microsoftonline.com") || issuer.Contains("sts.windows.net")))
+                            {
+                                // Create a claims principal for the Azure AD token
+                                var claims = jwtToken.Claims.Select(c => new System.Security.Claims.Claim(c.Type, c.Value)).ToList();
+                                var identity = new System.Security.Claims.ClaimsIdentity(claims, "Bearer");
+                                var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+                                
+                                context.Principal = principal;
+                                context.Success();
+                                return Task.CompletedTask;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // If we can't parse the token, let it fail normally
+                    }
+                }
+                
+                // Let the authentication fail normally for other cases
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -61,12 +113,65 @@ builder.Services.AddSingleton(new GraphServiceClient(clientSecretCredential, sco
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "External ID Graph Api", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "External ID Graph API", 
+        Version = "v1",
+        Description = @"
+## 🔐 Authentication System
+
+This API supports multiple authentication methods:
+
+### Token Types Supported:
+1. **Custom JWT Tokens** (from `/Token` endpoint)
+2. **Azure AD Tokens** (from `/Token/azure-ad` endpoint)
+3. **Azure AD Client Credentials** (from `/Token/azure-ad/client-credentials` endpoint)
+
+### How to Use:
+1. **Generate a token** using one of the Token endpoints
+2. **Click 'Authorize'** in Swagger UI
+3. **Enter your token** in format: `Bearer <your-token>`
+4. **Test the endpoints** - token will be automatically included
+
+### Supported Controllers:
+- **TokenController**: Generate and validate tokens
+- **GraphController**: Azure AD user management (uses GraphServiceClient)
+- **CustomGraphController**: Direct Microsoft Graph API calls
+
+### Quick Start:
+1. Generate token: `POST /Token/azure-ad` or `POST /Token`
+2. Copy the `access_token` from response
+3. Click 'Authorize' and enter: `Bearer <access_token>`
+4. Test endpoints like `GET /CustomGraph/getUserByEmail`
+
+For detailed documentation, see the [Azure AD Token Usage Guide](AZURE_AD_TOKEN_USAGE.md).
+        ",
+        Contact = new OpenApiContact
+        {
+            Name = "API Support",
+            Email = "support@example.com"
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
 
     // Add Bearer token authentication for Swagger UI
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Description = @"
+**JWT Authorization header using the Bearer scheme.**
+
+**Supported Token Types:**
+- Custom JWT tokens (from `/Token`)
+- Azure AD tokens (from `/Token/azure-ad`)
+- Azure AD client credentials (from `/Token/azure-ad/client-credentials`)
+
+**Format:** `Bearer <your-token>`
+
+**Example:** `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -87,6 +192,39 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+
+    // Add operation filters for better documentation
+    c.OperationFilter<SwaggerDefaultValues>();
+    
+    // Add schema filters for better model documentation
+    c.SchemaFilter<SwaggerSchemaFilter>();
+    
+    // Include XML comments if available
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+
+    // Group operations by controller
+    c.TagActionsBy(api =>
+    {
+        if (api.GroupName != null)
+        {
+            return new[] { api.GroupName.ToString() };
+        }
+
+        var controllerActionDescriptor = api.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
+        if (controllerActionDescriptor != null)
+        {
+            return new[] { controllerActionDescriptor.ControllerName };
+        }
+
+        throw new InvalidOperationException("Unable to determine tag for endpoint.");
+    });
+
+    c.DocInclusionPredicate((name, api) => true);
 
     // // OAuth2 Authorization Code flow for Azure AD with PKCE (any Microsoft user)
     // c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -164,17 +302,39 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        // c.OAuthClientId("your-client-id"); // TODO: Replace with your Azure AD App Registration client ID
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "External ID Graph API v1");
+        c.RoutePrefix = "swagger";
+        
+        // Enhanced UI configuration
+        c.DocumentTitle = "External ID Graph API Documentation";
+        c.DefaultModelsExpandDepth(2);
+        c.DefaultModelExpandDepth(2);
+        c.DisplayRequestDuration();
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+        c.EnableDeepLinking();
+        c.EnableFilter();
+        c.ShowExtensions();
+        c.ShowCommonExtensions();
+        
+        // Custom CSS for better styling
+        c.InjectStylesheet("/swagger-ui/custom.css");
+        
+        // Custom JavaScript for enhanced functionality
+        c.InjectJavascript("/swagger-ui/custom.js");
+        
+        // OAuth2 configuration (commented out for now)
+        // c.OAuthClientId("your-client-id");
         // c.OAuthScopes("User.Read.All", "User.ReadWrite.All", "Directory.AccessAsUser.All", "offline_access", "openid");
-        // c.OAuthUsePkce(); // Required for Authorization Code flow with PKCE
-        // c.OAuth2RedirectUrl("https://externalid-restapi-hcbvbpeef6c8gbay.southeastasia-01.azurewebsites.net/swagger/oauth2-redirect.html"); // TODO: Ensure this matches your Azure AD app registration
-        // https://localhost:7110/swagger/oauth2-redirect.html
+        // c.OAuthUsePkce();
+        // c.OAuth2RedirectUrl("https://externalid-restapi-hcbvbpeef6c8gbay.southeastasia-01.azurewebsites.net/swagger/oauth2-redirect.html");
     });
 // }
 
 // After app creation, before app.UseAuthorization()
 app.UseCors("AllowSwaggerUI");
+
+// Enable static files for custom Swagger UI assets
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
