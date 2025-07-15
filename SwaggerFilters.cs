@@ -44,53 +44,53 @@ namespace OIDC_ExternalID_API
                 case "GetToken":
                     operation.Summary = "Generate Custom JWT Token";
                     operation.Description = @"
-Generate a custom JWT token using OAuth 2.0 flows.
+                        Generate a custom JWT token using OAuth 2.0 flows.
 
-**Supported Grant Types:**
-- `client_credentials` - Service-to-service authentication
-- `password` - Username/password authentication
-- `refresh_token` - Refresh expired tokens
+                        **Supported Grant Types:**
+                        - `client_credentials` - Service-to-service authentication
+                        - `password` - Username/password authentication
+                        - `refresh_token` - Refresh expired tokens
 
-**Usage:**
-1. Use form data to send credentials
-2. Copy the `access_token` from response
-3. Use with `Bearer <token>` in Authorization header";
+                        **Usage:**
+                        1. Use form data to send credentials
+                        2. Copy the `access_token` from response
+                        3. Use with `Bearer <token>` in Authorization header";
                     break;
 
                 case "GetAzureAdToken":
                     operation.Summary = "Generate Azure AD Token (Client Credentials)";
                     operation.Description = @"
-Generate an Azure AD token using client credentials flow.
+                        Generate an Azure AD token using client credentials flow.
 
-**Features:**
-- Uses Azure AD OAuth 2.0 client credentials flow
-- Supports Microsoft Graph API scopes
-- Works with both GraphController and CustomGraphController
+                        **Features:**
+                        - Uses Azure AD OAuth 2.0 client credentials flow
+                        - Supports Microsoft Graph API scopes
+                        - Works with both GraphController and CustomGraphController
 
-**Required Fields:**
-- `client_id`: Your Azure AD application client ID
-- `client_secret`: Your Azure AD application client secret
-- `scope`: Microsoft Graph API scope (defaults to `https://graph.microsoft.com/.default`)";
+                        **Required Fields:**
+                        - `client_id`: Your Azure AD application client ID
+                        - `client_secret`: Your Azure AD application client secret
+                        - `scope`: Microsoft Graph API scope (defaults to `https://graph.microsoft.com/.default`)";
                     break;
 
                 case "GetAzureAdClientCredentialsToken":
                     operation.Summary = "Generate Azure AD Token (Alternative Client Credentials)";
                     operation.Description = @"
-Alternative endpoint for generating Azure AD tokens using client credentials flow.
+                        Alternative endpoint for generating Azure AD tokens using client credentials flow.
 
-**Same functionality as `/Token/azure-ad` but with different endpoint path.**
-Useful for service-to-service authentication scenarios.";
+                        **Same functionality as `/Token/azure-ad` but with different endpoint path.**
+                        Useful for service-to-service authentication scenarios.";
                     break;
 
                 case "ValidateToken":
                     operation.Summary = "Validate Access Token";
                     operation.Description = @"
-Validate an existing access token and get token information.
+                        Validate an existing access token and get token information.
 
-**Returns:**
-- Token validity status
-- Token claims (subject, scope, expiration)
-- Error details if token is invalid";
+                        **Returns:**
+                        - Token validity status
+                        - Token claims (subject, scope, expiration)
+                        - Error details if token is invalid";
                     break;
             }
         }
@@ -102,82 +102,82 @@ Validate an existing access token and get token information.
                 case "GetUserByEmail":
                     operation.Summary = "Get User by Email Address";
                     operation.Description = @"
-Retrieve user details from Microsoft Graph API using email address.
+                        Retrieve user details from Microsoft Graph API using email address.
 
-**Features:**
-- Direct Microsoft Graph API integration
-- Supports all token types (Custom JWT, Azure AD)
-- Searches by primary email or other email addresses
+                        **Features:**
+                        - Direct Microsoft Graph API integration
+                        - Supports all token types (Custom JWT, Azure AD)
+                        - Searches by primary email or other email addresses
 
-**Authentication:**
-Requires Bearer token from any of these sources:
-- `/Token` (Custom JWT)
-- `/Token/azure-ad` (Azure AD)
-- `/Token/azure-ad/client-credentials` (Azure AD)";
+                        **Authentication:**
+                        Requires Bearer token from any of these sources:
+                        - `/Token` (Custom JWT)
+                        - `/Token/azure-ad` (Azure AD)
+                        - `/Token/azure-ad/client-credentials` (Azure AD)";
                     break;
 
                 case "UpdateUserByEmail":
                     operation.Summary = "Update User by Email Address";
                     operation.Description = @"
-Update user attributes in Microsoft Graph API using email address.
+                        Update user attributes in Microsoft Graph API using email address.
 
-**Features:**
-- Direct Microsoft Graph API integration
-- Supports partial updates
-- Automatically finds user by email first
+                        **Features:**
+                        - Direct Microsoft Graph API integration
+                        - Supports partial updates
+                        - Automatically finds user by email first
 
-**Common Update Fields:**
-- `displayName`: User's display name
-- `jobTitle`: Job title
-- `department`: Department
-- `mobilePhone`: Mobile phone number
-- `businessPhones`: Business phone numbers";
+                        **Common Update Fields:**
+                        - `displayName`: User's display name
+                        - `jobTitle`: Job title
+                        - `department`: Department
+                        - `mobilePhone`: Mobile phone number
+                        - `businessPhones`: Business phone numbers";
                     break;
 
                 case "UpdateUserAttributesByEmail":
                     operation.Summary = "Update Specific User Attributes by Email";
                     operation.Description = @"
-Update specific user attributes using a structured model.
+                        Update specific user attributes using a structured model.
 
-**Supported Attributes:**
-- `DisplayName`: User's display name
-- `JobTitle`: Job title  
-- `Department`: Department
+                        **Supported Attributes:**
+                        - `DisplayName`: User's display name
+                        - `JobTitle`: Job title  
+                        - `Department`: Department
 
-**Benefits:**
-- Type-safe updates
-- Clear parameter documentation
-- Validation built-in";
+                        **Benefits:**
+                        - Type-safe updates
+                        - Clear parameter documentation
+                        - Validation built-in";
                     break;
 
                 case "DeleteUserByEmail":
                     operation.Summary = "Delete User by Email Address";
                     operation.Description = @"
-Delete a user from Microsoft Graph API using email address.
+                        Delete a user from Microsoft Graph API using email address.
 
-**⚠️ Warning:**
-This operation permanently deletes the user account.
-Make sure you have the correct email address before proceeding.
+                        **⚠️ Warning:**
+                        This operation permanently deletes the user account.
+                        Make sure you have the correct email address before proceeding.
 
-**Process:**
-1. Finds user by email address
-2. Deletes the user account
-3. Returns success confirmation";
+                        **Process:**
+                        1. Finds user by email address
+                        2. Deletes the user account
+                        3. Returns success confirmation";
                     break;
 
                 case "ResetPasswordByEmail":
                     operation.Summary = "Reset User Password by Email";
                     operation.Description = @"
-Reset a user's password in Microsoft Graph API using email address.
+                        Reset a user's password in Microsoft Graph API using email address.
 
-**Features:**
-- Admin-level operation
-- Generates temporary password
-- User must change password on next sign-in
+                        **Features:**
+                        - Admin-level operation
+                        - Generates temporary password
+                        - User must change password on next sign-in
 
-**Required Fields:**
-- `forceChangePasswordNextSignIn`: Set to true for security
-- `password`: New temporary password";
+                        **Required Fields:**
+                        - `forceChangePasswordNextSignIn`: Set to true for security
+                        - `password`: New temporary password";
                     break;
             }
         }
@@ -189,29 +189,29 @@ Reset a user's password in Microsoft Graph API using email address.
                 case "GetUserByEmail":
                     operation.Summary = "Get User by Email (GraphServiceClient)";
                     operation.Description = @"
-Retrieve user details using GraphServiceClient.
+                        Retrieve user details using GraphServiceClient.
 
-**Features:**
-- Uses GraphServiceClient with Azure AD credentials
-- Automatic token management
-- Built-in error handling
+                        **Features:**
+                        - Uses GraphServiceClient with Azure AD credentials
+                        - Automatic token management
+                        - Built-in error handling
 
-**Authentication:**
-Uses configured Azure AD application credentials.";
+                        **Authentication:**
+                        Uses configured Azure AD application credentials.";
                     break;
 
                 case "UpdateUserByEmail":
                     operation.Summary = "Update User by Email (GraphServiceClient)";
                     operation.Description = @"
-Update user attributes using GraphServiceClient.
+                        Update user attributes using GraphServiceClient.
 
-**Features:**
-- Uses GraphServiceClient with Azure AD credentials
-- Automatic token management
-- Built-in error handling
+                        **Features:**
+                        - Uses GraphServiceClient with Azure AD credentials
+                        - Automatic token management
+                        - Built-in error handling
 
-**Authentication:**
-Uses configured Azure AD application credentials.";
+                        **Authentication:**
+                        Uses configured Azure AD application credentials.";
                     break;
             }
         }

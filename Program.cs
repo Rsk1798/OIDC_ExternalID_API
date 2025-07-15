@@ -122,9 +122,8 @@ builder.Services.AddSwaggerGen(c =>
 
         This API supports multiple authentication methods:
 
-        ### Token Types Supported:
-        1. **Custom JWT Tokens** (from `/Token` endpoint)
-        2. **Azure AD Tokens** (from `/Token/azure-ad` endpoint)
+        ### Token Types Supported:        
+        1. **Azure AD Tokens** (from `/Token/azure-ad` endpoint)
 
         ### How to Use:
         1. **Generate a token** using one of the Token endpoints
@@ -143,6 +142,7 @@ builder.Services.AddSwaggerGen(c =>
         3. Click 'Authorize' and enter: `Bearer <access_token>`
         4. Test endpoints like `GET /CustomGraph/getUserByEmail`
         ",
+        // ### Token Types Supported:  1. **Custom JWT Tokens** (from `/Token` endpoint)
         // ### Quick Start: For detailed documentation, see the [Azure AD Token Usage Guide](AZURE_AD_TOKEN_USAGE.md).
         //Contact = new OpenApiContact
         //{
@@ -307,7 +307,7 @@ var app = builder.Build();
         
         // Enhanced UI configuration
         c.DocumentTitle = "External ID Graph API Documentation";
-        c.DefaultModelsExpandDepth(2);
+        c.DefaultModelsExpandDepth(-1);
         c.DefaultModelExpandDepth(2);
         c.DisplayRequestDuration();
         c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);

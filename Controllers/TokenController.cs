@@ -34,7 +34,7 @@ namespace OIDC_ExternalID_API.Controllers
         /// </summary>
         /// <param name="request">OAuth2 token request</param>
         /// <returns>Access token response</returns>
-        [HttpPost]
+        [HttpPost("Get Custom Token")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(OAuth2TokenResponse), 200)]
         [ProducesResponseType(400)]
@@ -46,6 +46,7 @@ namespace OIDC_ExternalID_API.Controllers
             OperationId = "GenerateCustomJwtToken",
             Tags = new[] { "Token" }
         )]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> GetToken([FromForm] OAuth2TokenRequest request)
         {
             try
@@ -95,7 +96,8 @@ namespace OIDC_ExternalID_API.Controllers
         /// </summary>
         /// <param name="request">Azure AD client credentials request</param>
         /// <returns>Azure AD access token response</returns>
-        [HttpPost("azure-ad-Token_Generation")]
+        [HttpPost("Get AAD Token")]
+        // [HttpPost("azure-ad-Token_Generation")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(AzureAdTokenResponse), 200)]
         [ProducesResponseType(400)]
