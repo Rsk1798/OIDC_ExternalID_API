@@ -189,7 +189,7 @@ Make sure your `appsettings.json` contains the Azure AD tenant configuration:
 ```json
 {
   "AzureAd": {
-    "TenantId": "volvogroupextid.onmicrosoft.com"
+    "TenantId": "yourdomain.onmicrosoft.com"
   }
 }
 ```
@@ -202,7 +202,7 @@ For CustomGraphController endpoints to work with custom JWT tokens, you also nee
 ```json
 {
   "AzureAd": {
-    "TenantId": "volvogroupextid.onmicrosoft.com",
+    "TenantId": "yourdomain.onmicrosoft.com",
     "ClientId": "your-azure-ad-client-id",
     "ClientSecret": "your-azure-ad-client-secret"
   }

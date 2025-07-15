@@ -225,11 +225,11 @@ Uses configured Azure AD application credentials.";
                 {
                     case "email":
                         parameter.Description = "User's email address (e.g., user@company.com)";
-                        parameter.Example = new OpenApiString("user@volvogroupextid.onmicrosoft.com");
+                        parameter.Example = new OpenApiString("user@yourdomain.onmicrosoft.com");
                         break;
                     case "idoremail":
                         parameter.Description = "User's object ID or email address";
-                        parameter.Example = new OpenApiString("user@volvogroupextid.onmicrosoft.com");
+                        parameter.Example = new OpenApiString("user@yourdomain.onmicrosoft.com");
                         break;
                     case "top":
                         parameter.Description = "Number of users to return (max 999)";
