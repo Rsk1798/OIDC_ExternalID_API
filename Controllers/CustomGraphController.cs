@@ -14,6 +14,7 @@ namespace OIDC_ExternalID_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class CustomGraphController : ControllerBase
     {
         private readonly IConfiguration _config;

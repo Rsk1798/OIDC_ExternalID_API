@@ -18,7 +18,7 @@ namespace OIDC_ExternalID_API.Controllers
     [ApiController]
     [Route("[controller]")]
     [Authorize]
-    [ApiExplorerSettings(IgnoreApi = true)]
+    //[ApiExplorerSettings(IgnoreApi = true)]
     public class GraphController : ControllerBase
     {
 
@@ -40,6 +40,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpGet("Readme-Instructuons-API-Endpoints")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult GetReadme()
         {
             var readme = System.IO.File.ReadAllText("README.md");
@@ -48,6 +49,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpGet("me")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult GetCurrentUser()
         {
             try
@@ -73,7 +75,8 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpPost("invite")]
         [Authorize]
-        
+        [ApiExplorerSettings(IgnoreApi = true)]
+
         public async Task<IActionResult> InviteUser(string email)
         {
             var invitation = new Invitation
@@ -104,6 +107,7 @@ namespace OIDC_ExternalID_API.Controllers
         // [HttpGet("Get_User-by-userobjID")]
         [HttpGet("getUserById")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> GetUser([FromQuery] string idOrEmail)
         {
             try
@@ -152,6 +156,7 @@ namespace OIDC_ExternalID_API.Controllers
         // [HttpPatch("Update_User-by-userobjID")]
         [HttpPatch("updateUserById")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
         {
             try
@@ -220,6 +225,7 @@ namespace OIDC_ExternalID_API.Controllers
         // [HttpPatch("UpdateUserLimitedAttributes-userobjID")]
         [HttpPatch("updateUserAttributesById")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
         {
             try
@@ -288,6 +294,7 @@ namespace OIDC_ExternalID_API.Controllers
         // [HttpDelete("Delete_User-by-userobjID")]
         [HttpDelete("deleteUserById")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
         {
             try
@@ -332,6 +339,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpPost("changePassword")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
         {
             var accessToken = await GetAccessTokenAsync();
@@ -357,6 +365,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpPatch("resetPasswordById")]
         [Authorize]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] ResetPasswordModel model)
         {
             try
@@ -422,6 +431,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpPost("requestPasswordReset(SSPR-likeInAzure")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetModel model)
         {
             try
@@ -467,6 +477,7 @@ namespace OIDC_ExternalID_API.Controllers
 
         [HttpPost("completePasswordReset(SSPR-likeInAzure)")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> CompletePasswordReset([FromBody] SelfServicePasswordResetModel model)
         {
             try
