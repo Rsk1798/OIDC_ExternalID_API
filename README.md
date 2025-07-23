@@ -383,3 +383,34 @@ curl -X POST "https://localhost:demo/Token" \
 - [Microsoft Identity Platform: App registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app)
 - [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference)
 - [Microsoft Identity Platform: OAuth2.0 Authorization Code Flow](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow)
+
+
+# Visual Flow
+
+flowchart LR
+    ClientApp((Client App))
+    APIApp((API App / SPN))
+    GraphAPI((Microsoft Graph API))
+
+    ClientApp --calls--> APIApp
+    APIApp --calls--> GraphAPI
+
+# Architecture & Permission Flow
+
+flowchart TD
+    subgraph AzureAD
+        APIApp["API App (SPN)<br/>(Has Graph Permissions)"]
+        ClientApp["Client App<br/>(No Graph Permissions)"]
+    end
+
+    subgraph YourAPI
+        GraphController
+        CustomGraphController
+    end
+
+    ClientApp -- "Calls (with JWT or Azure AD token)" --> YourAPI
+    YourAPI -- "Uses app credentials<br/>(ClientSecretCredential)" --> APIApp
+    GraphController -- "Calls Graph API<br/>(always as API App)" --> MicrosoftGraph[(Microsoft Graph API)]
+    CustomGraphController -- "Calls Graph API<br/>(as API App or as Client App, depending on token)" --> MicrosoftGraph
+
+    APIApp -- "Has Graph API permissions" --- MicrosoftGraph
