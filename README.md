@@ -388,12 +388,18 @@ curl -X POST "https://localhost:demo/Token" \
 # Visual Flow
 
 flowchart LR
-    ClientApp((Client App))
+    UserApp((App Team))
     APIApp((API App / SPN))
+    Authorization(Authorizaion Via Token)
+    WraperAPI((Wraper Graph API))
     GraphAPI((Microsoft Graph API))
 
-    ClientApp --calls--> APIApp
+    UserApp --calls--> Authorization
+    Authorization --calls--> WraperAPI
+    WraperAPI --calls--> APIApp
     APIApp --calls--> GraphAPI
+    GraphAPI --Sends Response--> WraperAPI
+    WraperAPI --Sends Response--> UserApp
 
 # Architecture & Permission Flow
 
