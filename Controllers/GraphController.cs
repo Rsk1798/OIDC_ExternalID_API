@@ -231,12 +231,16 @@ namespace OIDC_ExternalID_API.Controllers
             try
             {
                 var user = new User();
+                if(updates.firstName != null)
+                    user.GivenName = updates.firstName;
+                if (updates.lastName != null)
+                    user.Surname = updates.lastName;
                 if (updates.DisplayName != null)
-                    user.DisplayName = updates.DisplayName;
-                if (updates.JobTitle != null)
-                    user.JobTitle = updates.JobTitle;
-                if (updates.Department != null)
-                    user.Department = updates.Department;
+                    user.DisplayName = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
+                //if (updates.JobTitle != null)
+                //    user.JobTitle = updates.JobTitle;
+                //if (updates.Department != null)
+                //    user.Department = updates.Department;
                 // Add other fields as needed
 
                 await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
@@ -270,12 +274,16 @@ namespace OIDC_ExternalID_API.Controllers
                     return NotFound("User not found.");
 
                 var userUpdate = new User();
+                if (updates.firstName != null)
+                    user.GivenName = updates.firstName;
+                if (updates.lastName != null)
+                    user.Surname = updates.lastName;
                 if (updates.DisplayName != null)
-                    userUpdate.DisplayName = updates.DisplayName;
-                if (updates.JobTitle != null)
-                    userUpdate.JobTitle = updates.JobTitle;
-                if (updates.Department != null)
-                    userUpdate.Department = updates.Department;
+                    userUpdate.DisplayName = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
+                //if (updates.JobTitle != null)
+                //    userUpdate.JobTitle = updates.JobTitle;
+                //if (updates.Department != null)
+                //    userUpdate.Department = updates.Department;
                 // Add other fields as needed
 
                 await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);

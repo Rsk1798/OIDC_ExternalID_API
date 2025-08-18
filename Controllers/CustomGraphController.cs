@@ -326,12 +326,16 @@ namespace OIDC_ExternalID_API.Controllers
 
                 // var jsonContent = new StringContent(updates.GetRawText(), Encoding.UTF8, "application/json");
                 var user = new Dictionary<string, object>();
+                if (updates.firstName != null)
+                    user["givenName"] = updates.firstName;
+                if (updates.lastName != null)
+                    user["surname"] = updates.lastName;
                 if (updates.DisplayName != null)
-                    user["displayName"] = updates.DisplayName;
-                if (updates.JobTitle != null)
-                    user["jobTitle"] = updates.JobTitle;
-                if (updates.Department != null)
-                    user["department"] = updates.Department;
+                    user["displayName"] = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
+                //if (updates.JobTitle != null)
+                //    user["jobTitle"] = updates.JobTitle;
+                //if (updates.Department != null)
+                //    user["department"] = updates.Department;
                 // Add other allowed fields as needed
 
                 var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
@@ -417,12 +421,16 @@ namespace OIDC_ExternalID_API.Controllers
                 var userId = users[0].GetProperty("id").GetString();
 
                 var user = new Dictionary<string, object>();
+                if (updates.firstName != null)
+                    user["givenName"] = updates.firstName;
+                if (updates.lastName != null)
+                    user["surname"] = updates.lastName;
                 if (updates.DisplayName != null)
-                    user["displayName"] = updates.DisplayName;
-                if (updates.JobTitle != null)
-                    user["jobTitle"] = updates.JobTitle;
-                if (updates.Department != null)
-                    user["department"] = updates.Department;
+                    user["displayName"] = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
+                //if (updates.JobTitle != null)
+                //    user["jobTitle"] = updates.JobTitle;
+                //if (updates.Department != null)
+                //    user["department"] = updates.Department;
                 // Add other allowed fields as needed
 
                 // Update the user attributes
