@@ -12,7 +12,7 @@ namespace OIDC_ExternalID_API.Models
         /// <summary>
         /// User's display name (max 256 characters)
         /// </summary>
-        /// <example>John</example>
+        /// <example>John Doe</example>
         [StringLength(256)]
         [Description("User's first name")]
         public string? firstName { get; set; }
