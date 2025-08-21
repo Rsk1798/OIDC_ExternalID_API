@@ -274,11 +274,11 @@ namespace OIDC_ExternalID_API.Controllers
                     return NotFound("User not found.");
 
                 var userUpdate = new User();
-                // if (updates.firstName != null)
+                if (updates.firstName != null)
                     userUpdate.GivenName = updates.firstName;
-                // if (updates.lastName != null)
+                if (updates.lastName != null)
                     userUpdate.Surname = updates.lastName;
-                // if (updates.DisplayName != null)
+                if (updates.DisplayName != null)
                     userUpdate.DisplayName = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
                 //if (updates.JobTitle != null)
                 //    userUpdate.JobTitle = updates.JobTitle;
