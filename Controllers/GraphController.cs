@@ -274,11 +274,11 @@ namespace OIDC_ExternalID_API.Controllers
                     return NotFound("User not found.");
 
                 var userUpdate = new User();
-                if (updates.firstName != null)
-                    user.GivenName = updates.firstName;
-                if (updates.lastName != null)
-                    user.Surname = updates.lastName;
-                if (updates.DisplayName != null)
+                // if (updates.firstName != null)
+                    userUpdate.GivenName = updates.firstName;
+                // if (updates.lastName != null)
+                    userUpdate.Surname = updates.lastName;
+                // if (updates.DisplayName != null)
                     userUpdate.DisplayName = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
                 //if (updates.JobTitle != null)
                 //    userUpdate.JobTitle = updates.JobTitle;
@@ -383,15 +383,15 @@ namespace OIDC_ExternalID_API.Controllers
                     PasswordProfile = new PasswordProfile
                     {
                         Password = model.NewPassword,
-                        ForceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn,
-                        ForceChangePasswordNextSignInWithMfa = model.ForceChangePasswordNextSignInWithMfa
+                        ForceChangePasswordNextSignIn = false, // model.ForceChangePasswordNextSignIn,
+                        ForceChangePasswordNextSignInWithMfa = false // model.ForceChangePasswordNextSignInWithMfa
                     }
                 };
 
                 // This line calls the Graph API to update the user's password profile
                 await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
 
-                return Ok($"Password reset successfully for user {idOrEmail}. User will be required to change password on next sign-in: {model.ForceChangePasswordNextSignIn}");
+                return Ok($"Password reset successfully for user {idOrEmail}. User will not be required to change password on next sign-in"); // : {model.ForceChangePasswordNextSignIn}
             }
             catch (ODataError odataError)
             {
@@ -421,15 +421,15 @@ namespace OIDC_ExternalID_API.Controllers
                     PasswordProfile = new PasswordProfile
                     {
                         Password = model.NewPassword,
-                        ForceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn,
-                        ForceChangePasswordNextSignInWithMfa = model.ForceChangePasswordNextSignInWithMfa
+                        ForceChangePasswordNextSignIn = false, // model.ForceChangePasswordNextSignIn,
+                        ForceChangePasswordNextSignInWithMfa = false // model.ForceChangePasswordNextSignInWithMfa
                     }
                 };
 
                 // Update the user's password profile using their ID
                 await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
 
-                return Ok($"Password reset successfully for user with email '{email}'. User will be required to change password on next sign-in: {model.ForceChangePasswordNextSignIn}");
+                return Ok($"Password reset successfully for user with email '{email}'. User will not be required to change password on next sign-in"); // : {model.ForceChangePasswordNextSignIn}
             }
             catch (ODataError odataError)
             {

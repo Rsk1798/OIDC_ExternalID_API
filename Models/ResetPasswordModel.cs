@@ -7,9 +7,9 @@ namespace OIDC_ExternalID_API.Models
         [Required]
         public string NewPassword { get; set; }
 
-        [Required]
-        public bool ForceChangePasswordNextSignIn { get; set; } = true;
+       // [Required]
+       // public bool ForceChangePasswordNextSignIn { get; set; } = true;
 
-        public bool ForceChangePasswordNextSignInWithMfa { get; set; } = false;
+       // public bool ForceChangePasswordNextSignInWithMfa { get; set; } = false;
     }
 } 
