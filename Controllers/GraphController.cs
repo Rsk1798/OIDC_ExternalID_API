@@ -26,16 +26,16 @@ namespace OIDC_ExternalID_API.Controllers
         private readonly GraphServiceClient _graphServiceClient;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GraphController> _logger;
+        // private readonly ILogger<GraphController> _logger;
 
 
         // This injects the GraphServiceClient into your controller
-        public GraphController(GraphServiceClient graphServiceClient, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<GraphController> logger)
+        public GraphController(GraphServiceClient graphServiceClient, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) // , ILogger<GraphController> logger
         {
             _graphServiceClient = graphServiceClient;
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
+            // _logger = logger;
         }
 
 
@@ -412,7 +412,7 @@ namespace OIDC_ExternalID_API.Controllers
                     .GetAsync(requestConfig =>
                     {
                         requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
-                        requestConfig.QueryParameters.Select = new[] { "id", "userPrincipalName", "identities" };
+                        // requestConfig.QueryParameters.Select = new[] { "id", "userPrincipalName", "identities" };
                     });
 
                 var user = users?.Value?.FirstOrDefault();
@@ -420,10 +420,10 @@ namespace OIDC_ExternalID_API.Controllers
                     return NotFound("User not found.");
 
                 // Check if user is using social IDP (look for non-local identities)
-                if (user.Identities?.Any(i => i.SignInType != "userName" && i.SignInType != "emailAddress") == true)
-                {
-                    return BadRequest("Password cannot be changed for social IDP accounts.");
-                }
+                //if (user.Identities?.Any(i => i.SignInType != "userName" && i.SignInType != "emailAddress") == true)
+                //{
+                //    return BadRequest("Password cannot be changed for social IDP accounts.");
+                //}
 
                 var userUpdate = new User
                 {
@@ -446,29 +446,30 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
-        [HttpGet("users/{id}/authentication/methods")]
-        public async Task<IActionResult> GetUserAuthenticationMethods(string id)
-        {
-            try
-            {
-                // Get authentication methods from Microsoft Graph
-                var methods = await _graphServiceClient.Users[id]
-                    .Authentication
-                    .Methods
-                    .GetAsync();
+        //[HttpGet("users/{id}/authentication/methods")]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> GetUserAuthenticationMethods(string id)
+        //{
+        //    try
+        //    {
+        //        // Get authentication methods from Microsoft Graph
+        //        var methods = await _graphServiceClient.Users[id]
+        //            .Authentication
+        //            .Methods
+        //            .GetAsync();
 
-                return Ok(methods);
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting authentication methods for user {UserId}", id);
-                return StatusCode(500, "Internal server error");
-            }
-        }
+        //        return Ok(methods);
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error getting authentication methods for user {UserId}", id);
+        //        return StatusCode(500, "Internal server error");
+        //    }
+        //}
 
 
        // [HttpGet("users/{idOrEmail}/authentication/methods")]
