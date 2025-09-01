@@ -517,23 +517,55 @@ namespace OIDC_ExternalID_API.Controllers
         {
             try
             {
-                // First, find the user by email
+                // First, find the user by email and get their identities
                 var users = await _graphServiceClient.Users
                     .GetAsync(requestConfig =>
                     {
                         requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
-                        // requestConfig.QueryParameters.Select = new[] { "id", "userPrincipalName", "identities" };
+                        requestConfig.QueryParameters.Select = new[] { "id", "userPrincipalName", "identities" };
                     });
 
                 var user = users?.Value?.FirstOrDefault();
                 if (user == null)
                     return NotFound("User not found.");
 
-                // Check if user is using social IDP (look for non-local identities)
-                //if (user.Identities?.Any(i => i.SignInType != "userName" && i.SignInType != "emailAddress") == true)
-                //{
-                //    return BadRequest("Password cannot be changed for social IDP accounts.");
-                //}
+                // Check if user is using social IDP based on identities issuer
+                if (user.Identities != null && user.Identities.Any())
+                {
+                    foreach (var identity in user.Identities)
+                    {
+                        // if (identity.Issuer != null)
+                        if (identity.Issuer != null && identity.Issuer != "volvogroupextiddev.onmicrosoft.com" && identity.SignInType != null)
+                        {
+                            // Check if the issuer indicates a social IDP
+                            var issuer = identity.Issuer.ToLowerInvariant();
+                            
+                            // Common social IDP issuers
+                            if (issuer.Contains("google.com") ||
+                                issuer.Contains("facebook.com") ||
+                                issuer.Contains("microsoft.com") ||
+                                issuer.Contains("live.com") ||
+                                issuer.Contains("outlook.com") ||
+                                issuer.Contains("twitter.com") ||
+                                issuer.Contains("linkedin.com") ||
+                                issuer.Contains("github.com") ||
+                                issuer.Contains("apple.com") ||
+                                issuer.Contains("amazon.com") ||
+                                // Check for federated/external issuers (not your tenant domain)
+                                (!issuer.Contains(".onmicrosoft.com") && identity.SignInType != "userPrincipalName"))
+                            {
+                                return BadRequest(new
+                                {
+                                    error = "Password reset not supported for social identity provider accounts",
+                                    message = $"This account uses a social identity provider ('{identity.Issuer}'). Password changes must be performed through the original identity provider.",
+                                    signInType = identity.SignInType,
+                                    issuer = identity.Issuer,
+                                    suggestion = "Please contact your identity provider to change your password."
+                                });
+                            }
+                        }
+                    }
+                }
 
                 var userUpdate = new User
                 {
