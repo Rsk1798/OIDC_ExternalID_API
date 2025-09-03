@@ -266,104 +266,104 @@ namespace OIDC_ExternalID_API.Controllers
 
 
         // [HttpPatch("Update_User-by-userobjID")]
-        [HttpPatch("updateUserById")]
-        [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
-        {
-            try
-            {
-                var user = new User();
-                foreach (var kvp in updates)
-                {
-                    user.AdditionalData[kvp.Key] = kvp.Value;
-                }
+        //[HttpPatch("updateUserById")]
+        //[Authorize]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> UpdateUser([FromQuery] string idOrEmail, [FromBody] Dictionary<string, object> updates)
+        //{
+        //    try
+        //    {
+        //        var user = new User();
+        //        foreach (var kvp in updates)
+        //        {
+        //            user.AdditionalData[kvp.Key] = kvp.Value;
+        //        }
 
-                // This line calls the Graph API to update a user
-                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
+        //        // This line calls the Graph API to update a user
+        //        await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
 
-                return Ok("User Updated Successfully.");
+        //        return Ok("User Updated Successfully.");
 
-                // Fetch the updated user object
-                //var updatedUser = await _graphServiceClient.Users[idOrEmail].GetAsync();
-                //return Ok(updatedUser);
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
-
-
+        //        // Fetch the updated user object
+        //        //var updatedUser = await _graphServiceClient.Users[idOrEmail].GetAsync();
+        //        //return Ok(updatedUser);
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
 
 
-        [HttpPatch("updateUserByEmail")]
-        [Authorize]
-        public async Task<IActionResult> UpdateUserByEmail([FromQuery] string email, [FromBody] Dictionary<string, object> updates)
-        {
-            try
-            {
-                // Find the user by email
-                var users = await _graphServiceClient.Users
-                    .GetAsync(requestConfig =>
-                    {
-                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
-                    });
 
-                var user = users?.Value?.FirstOrDefault();
-                if (user == null)
-                    return NotFound("User not found.");
 
-                var userUpdate = new User();
-                foreach (var kvp in updates)
-                {
-                    userUpdate.AdditionalData[kvp.Key] = kvp.Value;
-                }
+        //[HttpPatch("updateUserByEmail")]
+        //[Authorize]
+        //public async Task<IActionResult> UpdateUserByEmail([FromQuery] string email, [FromBody] Dictionary<string, object> updates)
+        //{
+        //    try
+        //    {
+        //        // Find the user by email
+        //        var users = await _graphServiceClient.Users
+        //            .GetAsync(requestConfig =>
+        //            {
+        //                requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+        //            });
 
-                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+        //        var user = users?.Value?.FirstOrDefault();
+        //        if (user == null)
+        //            return NotFound("User not found.");
 
-                return Ok($"User with email '{email}' updated successfully.");
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //        var userUpdate = new User();
+        //        foreach (var kvp in updates)
+        //        {
+        //            userUpdate.AdditionalData[kvp.Key] = kvp.Value;
+        //        }
+
+        //        await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+
+        //        return Ok($"User with email '{email}' updated successfully.");
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
 
 
 
         // [HttpPatch("UpdateUserLimitedAttributes-userobjID")]
-        [HttpPatch("updateUserAttributesById")]
-        [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
-        {
-            try
-            {
-                var user = new User();
-                if(updates.firstName != null)
-                    user.GivenName = updates.firstName;
-                if (updates.lastName != null)
-                    user.Surname = updates.lastName;
-                if (updates.DisplayName != null)
-                    user.DisplayName = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
-                //if (updates.JobTitle != null)
-                //    user.JobTitle = updates.JobTitle;
-                //if (updates.Department != null)
-                //    user.Department = updates.Department;
-                // Add other fields as needed
+        //[HttpPatch("updateUserAttributesById")]
+        //[Authorize]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> UpdateUserLimitedAttributes([FromQuery] string idOrEmail, [FromBody] UserUpdateModel updates)
+        //{
+        //    try
+        //    {
+        //        var user = new User();
+        //        if(updates.firstName != null)
+        //            user.GivenName = updates.firstName;
+        //        if (updates.lastName != null)
+        //            user.Surname = updates.lastName;
+        //        if (updates.DisplayName != null)
+        //            user.DisplayName = updates.DisplayName; // updates.firstName + " " + updates.lastName; // updates.DisplayName;
+        //        //if (updates.JobTitle != null)
+        //        //    user.JobTitle = updates.JobTitle;
+        //        //if (updates.Department != null)
+        //        //    user.Department = updates.Department;
+        //        // Add other fields as needed
 
-                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
+        //        await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
 
-                return Ok("User Updated with Limited Attributes");
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //        return Ok("User Updated with Limited Attributes");
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
 
 
@@ -412,22 +412,22 @@ namespace OIDC_ExternalID_API.Controllers
 
 
         // [HttpDelete("Delete_User-by-userobjID")]
-        [HttpDelete("deleteUserById")]
-        [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
-        {
-            try
-            {
-                // This line calls the Graph API to delete a user
-                await _graphServiceClient.Users[idOrEmail].DeleteAsync();
-                return Ok("User deleted successfully.");
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //[HttpDelete("deleteUserById")]
+        //[Authorize]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> DeleteUser([FromQuery] string idOrEmail)
+        //{
+        //    try
+        //    {
+        //        // This line calls the Graph API to delete a user
+        //        await _graphServiceClient.Users[idOrEmail].DeleteAsync();
+        //        return Ok("User deleted successfully.");
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
         // [HttpDelete("Delete_User-by-email")]
         [HttpDelete("deleteUserByEmail")]
@@ -457,136 +457,136 @@ namespace OIDC_ExternalID_API.Controllers
             }
         }
 
-        [HttpPost("changePassword")]
-        [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
-        {
-            var accessToken = await GetAccessTokenAsync();
-            if (string.IsNullOrEmpty(accessToken))
-                return Unauthorized();
+        //[HttpPost("changePassword")]
+        //[Authorize]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
+        //{
+        //    var accessToken = await GetAccessTokenAsync();
+        //    if (string.IsNullOrEmpty(accessToken))
+        //        return Unauthorized();
 
-            var client = _httpClientFactory.CreateClient();
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/v1.0/me/changePassword");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            request.Content = new StringContent(JsonConvert.SerializeObject(new
-            {
-                currentPassword = model.CurrentPassword,
-                newPassword = model.NewPassword
-            }), Encoding.UTF8, "application/json");
+        //    var client = _httpClientFactory.CreateClient();
+        //    var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/v1.0/me/changePassword");
+        //    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        //    request.Content = new StringContent(JsonConvert.SerializeObject(new
+        //    {
+        //        currentPassword = model.CurrentPassword,
+        //        newPassword = model.NewPassword
+        //    }), Encoding.UTF8, "application/json");
 
-            var response = await client.SendAsync(request);
-            if (response.StatusCode == HttpStatusCode.NoContent)
-                return NoContent();
+        //    var response = await client.SendAsync(request);
+        //    if (response.StatusCode == HttpStatusCode.NoContent)
+        //        return NoContent();
 
-            var error = await response.Content.ReadAsStringAsync();
-            return StatusCode((int)response.StatusCode, error);
-        }
+        //    var error = await response.Content.ReadAsStringAsync();
+        //    return StatusCode((int)response.StatusCode, error);
+        //}
 
-        [HttpPatch("resetPasswordById")]
-        [Authorize]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] ResetPasswordModel model)
-        {
-            try
-            {
-                var user = new User
-                {
-                    PasswordProfile = new PasswordProfile
-                    {
-                        Password = model.NewPassword,
-                        ForceChangePasswordNextSignIn = false, // model.ForceChangePasswordNextSignIn,
-                        ForceChangePasswordNextSignInWithMfa = false // model.ForceChangePasswordNextSignInWithMfa
-                    }
-                };
+        //[HttpPatch("resetPasswordById")]
+        //[Authorize]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> ResetPasswordById([FromQuery] string idOrEmail, [FromBody] ResetPasswordModel model)
+        //{
+        //    try
+        //    {
+        //        var user = new User
+        //        {
+        //            PasswordProfile = new PasswordProfile
+        //            {
+        //                Password = model.NewPassword,
+        //                ForceChangePasswordNextSignIn = false, // model.ForceChangePasswordNextSignIn,
+        //                ForceChangePasswordNextSignInWithMfa = false // model.ForceChangePasswordNextSignInWithMfa
+        //            }
+        //        };
 
-                // This line calls the Graph API to update the user's password profile
-                await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
+        //        // This line calls the Graph API to update the user's password profile
+        //        await _graphServiceClient.Users[idOrEmail].PatchAsync(user);
 
-                return Ok($"Password reset successfully for user {idOrEmail}. User will not be required to change password on next sign-in"); // : {model.ForceChangePasswordNextSignIn}
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //        return Ok($"Password reset successfully for user {idOrEmail}. User will not be required to change password on next sign-in"); // : {model.ForceChangePasswordNextSignIn}
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
-        [HttpPatch("resetPasswordByEmail")]
-        [Authorize]
-        public async Task<IActionResult> ResetPasswordByEmail([FromQuery] string email, [FromBody] ResetPasswordModel model)
-        {
-            try
-            {
-                // First, find the user by email and get their identities
-                var users = await _graphServiceClient.Users
-                    .GetAsync(requestConfig =>
-                    {
-                        requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
-                        requestConfig.QueryParameters.Select = new[] { "id", "userPrincipalName", "identities" };
-                    });
+        //[HttpPatch("resetPasswordByEmail")]
+        //[Authorize]
+        //public async Task<IActionResult> ResetPasswordByEmail([FromQuery] string email, [FromBody] ResetPasswordModel model)
+        //{
+        //    try
+        //    {
+        //        // First, find the user by email and get their identities
+        //        var users = await _graphServiceClient.Users
+        //            .GetAsync(requestConfig =>
+        //            {
+        //                requestConfig.QueryParameters.Filter = $"mail eq '{email}' or otherMails/any(x:x eq '{email}')";
+        //                requestConfig.QueryParameters.Select = new[] { "id", "userPrincipalName", "identities" };
+        //            });
 
-                var user = users?.Value?.FirstOrDefault();
-                if (user == null)
-                    return NotFound("User not found.");
+        //        var user = users?.Value?.FirstOrDefault();
+        //        if (user == null)
+        //            return NotFound("User not found.");
 
-                // Check if user is using social IDP based on identities issuer
-                if (user.Identities != null && user.Identities.Any())
-                {
-                    foreach (var identity in user.Identities)
-                    {
-                        // if (identity.Issuer != null)
-                        if (identity.Issuer != null && identity.Issuer != "volvogroupextiddev.onmicrosoft.com" && identity.SignInType != null)
-                        {
-                            // Check if the issuer indicates a social IDP
-                            var issuer = identity.Issuer.ToLowerInvariant();
+        //        // Check if user is using social IDP based on identities issuer
+        //        if (user.Identities != null && user.Identities.Any())
+        //        {
+        //            foreach (var identity in user.Identities)
+        //            {
+        //                // if (identity.Issuer != null)
+        //                if (identity.Issuer != null && identity.Issuer != "volvogroupextiddev.onmicrosoft.com" && identity.SignInType != null)
+        //                {
+        //                    // Check if the issuer indicates a social IDP
+        //                    var issuer = identity.Issuer.ToLowerInvariant();
                             
-                            // Common social IDP issuers
-                            if (issuer.Contains("google.com") ||
-                                issuer.Contains("facebook.com") ||
-                                issuer.Contains("microsoft.com") ||
-                                issuer.Contains("live.com") ||
-                                issuer.Contains("outlook.com") ||
-                                issuer.Contains("twitter.com") ||
-                                issuer.Contains("linkedin.com") ||
-                                issuer.Contains("github.com") ||
-                                issuer.Contains("apple.com") ||
-                                issuer.Contains("amazon.com") ||
-                                // Check for federated/external issuers (not your tenant domain)
-                                (!issuer.Contains(".onmicrosoft.com") && identity.SignInType != "userPrincipalName"))
-                            {
-                                return BadRequest(new
-                                {
-                                    error = "Password reset not supported for social identity provider accounts",
-                                    message = $"This account uses a social identity provider ('{identity.Issuer}'). Password changes must be performed through the original identity provider.",
-                                    signInType = identity.SignInType,
-                                    issuer = identity.Issuer,
-                                    suggestion = "Please contact your identity provider to change your password."
-                                });
-                            }
-                        }
-                    }
-                }
+        //                    // Common social IDP issuers
+        //                    if (issuer.Contains("google.com") ||
+        //                        issuer.Contains("facebook.com") ||
+        //                        issuer.Contains("microsoft.com") ||
+        //                        issuer.Contains("live.com") ||
+        //                        issuer.Contains("outlook.com") ||
+        //                        issuer.Contains("twitter.com") ||
+        //                        issuer.Contains("linkedin.com") ||
+        //                        issuer.Contains("github.com") ||
+        //                        issuer.Contains("apple.com") ||
+        //                        issuer.Contains("amazon.com") ||
+        //                        // Check for federated/external issuers (not your tenant domain)
+        //                        (!issuer.Contains(".onmicrosoft.com") && identity.SignInType != "userPrincipalName"))
+        //                    {
+        //                        return BadRequest(new
+        //                        {
+        //                            error = "Password reset not supported for social identity provider accounts",
+        //                            message = $"This account uses a social identity provider ('{identity.Issuer}'). Password changes must be performed through the original identity provider.",
+        //                            signInType = identity.SignInType,
+        //                            issuer = identity.Issuer,
+        //                            suggestion = "Please contact your identity provider to change your password."
+        //                        });
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                var userUpdate = new User
-                {
-                    PasswordProfile = new PasswordProfile
-                    {
-                        Password = model.NewPassword,
-                        ForceChangePasswordNextSignIn = false, // model.ForceChangePasswordNextSignIn,
-                        ForceChangePasswordNextSignInWithMfa = false // model.ForceChangePasswordNextSignInWithMfa
-                    }
-                };
+        //        var userUpdate = new User
+        //        {
+        //            PasswordProfile = new PasswordProfile
+        //            {
+        //                Password = model.NewPassword,
+        //                ForceChangePasswordNextSignIn = false, // model.ForceChangePasswordNextSignIn,
+        //                ForceChangePasswordNextSignInWithMfa = false // model.ForceChangePasswordNextSignInWithMfa
+        //            }
+        //        };
 
-                // Update the user's password profile using their ID
-                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+        //        // Update the user's password profile using their ID
+        //        await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
 
-                return Ok($"Password reset successfully for user with email '{email}'. User will not be required to change password on next sign-in"); // : {model.ForceChangePasswordNextSignIn}
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //        return Ok($"Password reset successfully for user with email '{email}'. User will not be required to change password on next sign-in"); // : {model.ForceChangePasswordNextSignIn}
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
         //[HttpGet("users/{id}/authentication/methods")]
         //[ApiExplorerSettings(IgnoreApi = true)]
@@ -664,105 +664,105 @@ namespace OIDC_ExternalID_API.Controllers
         //    }
         //}
 
-        [HttpPost("requestPasswordReset(SSPR-likeInAzure")]
-        [AllowAnonymous]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetModel model)
-        {
-            try
-            {
-                // First, verify the user exists
-                var users = await _graphServiceClient.Users
-                    .GetAsync(requestConfig =>
-                    {
-                        requestConfig.QueryParameters.Filter = $"mail eq '{model.Email}' or otherMails/any(x:x eq '{model.Email}')";
-                    });
+        //[HttpPost("requestPasswordReset(SSPR-likeInAzure")]
+        //[AllowAnonymous]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetModel model)
+        //{
+        //    try
+        //    {
+        //        // First, verify the user exists
+        //        var users = await _graphServiceClient.Users
+        //            .GetAsync(requestConfig =>
+        //            {
+        //                requestConfig.QueryParameters.Filter = $"mail eq '{model.Email}' or otherMails/any(x:x eq '{model.Email}')";
+        //            });
 
-                var user = users?.Value?.FirstOrDefault();
-                if (user == null)
-                {
-                    // Don't reveal if user exists or not for security
-                    return Ok("If the email address exists in our system, a verification code has been sent.");
-                }
+        //        var user = users?.Value?.FirstOrDefault();
+        //        if (user == null)
+        //        {
+        //            // Don't reveal if user exists or not for security
+        //            return Ok("If the email address exists in our system, a verification code has been sent.");
+        //        }
 
-                // Generate a verification code (6 digits)
-                var verificationCode = GenerateVerificationCode();
+        //        // Generate a verification code (6 digits)
+        //        var verificationCode = GenerateVerificationCode();
                 
-                // Store the verification code with expiration (you might want to use a database or cache)
-                // For demo purposes, we'll use a simple in-memory storage
-                StoreVerificationCode(model.Email, verificationCode);
+        //        // Store the verification code with expiration (you might want to use a database or cache)
+        //        // For demo purposes, we'll use a simple in-memory storage
+        //        StoreVerificationCode(model.Email, verificationCode);
 
-                // Send email with verification code
-                // Note: In a real implementation, you would integrate with an email service
-                // For now, we'll just return the code in the response for testing
-                await SendVerificationEmail(model.Email, verificationCode);
+        //        // Send email with verification code
+        //        // Note: In a real implementation, you would integrate with an email service
+        //        // For now, we'll just return the code in the response for testing
+        //        await SendVerificationEmail(model.Email, verificationCode);
 
-                return Ok(new
-                {
-                    message = "If the email address exists in our system, a verification code has been sent.",
-                    verificationCode = verificationCode, // Remove this in production
-                    expiresIn = "15 minutes"
-                });
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //        return Ok(new
+        //        {
+        //            message = "If the email address exists in our system, a verification code has been sent.",
+        //            verificationCode = verificationCode, // Remove this in production
+        //            expiresIn = "15 minutes"
+        //        });
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
-        [HttpPost("completePasswordReset(SSPR-likeInAzure)")]
-        [AllowAnonymous]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> CompletePasswordReset([FromBody] SelfServicePasswordResetModel model)
-        {
-            try
-            {
-                // Verify the verification code
-                if (!ValidateVerificationCode(model.Email, model.VerificationCode))
-                {
-                    return BadRequest("Invalid or expired verification code.");
-                }
+        //[HttpPost("completePasswordReset(SSPR-likeInAzure)")]
+        //[AllowAnonymous]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> CompletePasswordReset([FromBody] SelfServicePasswordResetModel model)
+        //{
+        //    try
+        //    {
+        //        // Verify the verification code
+        //        if (!ValidateVerificationCode(model.Email, model.VerificationCode))
+        //        {
+        //            return BadRequest("Invalid or expired verification code.");
+        //        }
 
-                // Find the user by email
-                var users = await _graphServiceClient.Users
-                    .GetAsync(requestConfig =>
-                    {
-                        requestConfig.QueryParameters.Filter = $"mail eq '{model.Email}' or otherMails/any(x:x eq '{model.Email}')";
-                    });
+        //        // Find the user by email
+        //        var users = await _graphServiceClient.Users
+        //            .GetAsync(requestConfig =>
+        //            {
+        //                requestConfig.QueryParameters.Filter = $"mail eq '{model.Email}' or otherMails/any(x:x eq '{model.Email}')";
+        //            });
 
-                var user = users?.Value?.FirstOrDefault();
-                if (user == null)
-                {
-                    return NotFound("User not found.");
-                }
+        //        var user = users?.Value?.FirstOrDefault();
+        //        if (user == null)
+        //        {
+        //            return NotFound("User not found.");
+        //        }
 
-                // Update the user's password profile
-                var userUpdate = new User
-                {
-                    PasswordProfile = new PasswordProfile
-                    {
-                        Password = model.NewPassword,
-                        ForceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn,
-                        ForceChangePasswordNextSignInWithMfa = model.ForceChangePasswordNextSignInWithMfa
-                    }
-                };
+        //        // Update the user's password profile
+        //        var userUpdate = new User
+        //        {
+        //            PasswordProfile = new PasswordProfile
+        //            {
+        //                Password = model.NewPassword,
+        //                ForceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn,
+        //                ForceChangePasswordNextSignInWithMfa = model.ForceChangePasswordNextSignInWithMfa
+        //            }
+        //        };
 
-                await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
+        //        await _graphServiceClient.Users[user.Id].PatchAsync(userUpdate);
 
-                // Clear the verification code after successful reset
-                ClearVerificationCode(model.Email);
+        //        // Clear the verification code after successful reset
+        //        ClearVerificationCode(model.Email);
 
-                return Ok(new
-                {
-                    message = "Password reset successfully. You can now log in with your new password.",
-                    forceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn
-                });
-            }
-            catch (ODataError odataError)
-            {
-                return BadRequest(odataError.Error);
-            }
-        }
+        //        return Ok(new
+        //        {
+        //            message = "Password reset successfully. You can now log in with your new password.",
+        //            forceChangePasswordNextSignIn = model.ForceChangePasswordNextSignIn
+        //        });
+        //    }
+        //    catch (ODataError odataError)
+        //    {
+        //        return BadRequest(odataError.Error);
+        //    }
+        //}
 
         private string GenerateVerificationCode()
         {
